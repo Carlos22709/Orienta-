@@ -86,7 +86,25 @@ npx expo start
 | `npm run typecheck` | `apps/mobile` | Tipos de la app con `tsc --noEmit` |
 | `npx expo-doctor` | `apps/mobile` | Compatibilidad de dependencias con el SDK |
 
-Estos comandos se ejecutaron con éxito el 2026-11-09, salvo `npx expo start` en un dispositivo y `npx supabase start`, que todavía no se han probado.
+Estos comandos se ejecutaron con éxito el 2026-11-09, salvo `npx expo start` en un dispositivo, que todavía no se ha probado.
+
+### Base de datos local (requiere Docker)
+
+```bash
+# Levanta solo lo necesario: Postgres, Auth, PostgREST y el gateway
+npx supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+# Recrea la base: aplica supabase/migrations/ y carga supabase/seed.sql
+npx supabase db reset
+
+# Pruebas pgTAP del esquema (supabase/tests/database/)
+npx supabase test db
+
+# Detiene los contenedores
+npx supabase stop
+```
+
+La primera vez, `supabase start` descarga varias imágenes de Docker y puede tardar varios minutos.
 
 ## Accesibilidad
 

@@ -115,7 +115,12 @@ erDiagram
   }
 ```
 
-Valores enumerados tentativos:
+El esquema está implementado en `supabase/migrations/20261110042232_esquema_inicial.sql` y probado con pgTAP en `supabase/tests/database/esquema.test.sql`. Además de las tablas, incluye dos funciones **atómicas**. Cada una comprueba y actualiza en una sola sentencia `UPDATE`, para que dos peticiones simultáneas no puedan tener éxito las dos:
+
+- `consume_totp_step(user_id, step)`: registra la ventana TOTP usada y devuelve `false` si es una repetición (anti-replay).
+- `consume_step_up_challenge(token_hash)`: consume un reto de step-up vigente una sola vez y devuelve su usuario y acción.
+
+Valores enumerados:
 
 | Campo | Valores |
 |---|---|
