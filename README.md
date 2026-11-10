@@ -87,10 +87,26 @@ npx expo start
 | `npm run api:lint` | Raíz | Lint de Deno |
 | `npm run api:fmt:check` | Raíz | Verifica el formato sin modificar archivos (`api:fmt` lo corrige) |
 | `npm run typecheck` | `apps/mobile` | Tipos de la app con `tsc --noEmit` |
-| `npm test` | `apps/mobile` | Pruebas de la app con Jest (`jest-expo`): PKCE, cliente de Supabase Auth, sesión y cola de silent refresh |
-| `npx expo-doctor` | `apps/mobile` | Compatibilidad de dependencias con el SDK |
+| `npm test` | `apps/mobile` | Pruebas de la app con Jest (`jest-expo`): contraste WCAG AA, vigencia de convocatorias, validación de enlaces externos, estados accesibles, tarjetas, rendimiento de listas, recorrido integrado, PKCE, cliente de Supabase Auth, sesión y silent refresh (56 pruebas en 13 suites) |
+| `npx expo-doctor` | `apps/mobile` | Compatibilidad de dependencias con el SDK (20/20 comprobaciones aprobadas) |
 
-Estos comandos se ejecutaron con éxito el 2026-11-10, salvo `npx expo start` en un dispositivo, que todavía no se ha probado.
+Estos comandos se ejecutaron con 100 % de éxito el 2026-11-10.
+
+## Recorrido del usuario y pantallas
+
+Orienta+ guía al joven a través de un flujo estructurado y accesible:
+
+1. **Bienvenida y consentimiento (`apps/mobile/app/welcome/index.tsx`):** Explica los alcances y límites del orientador, y solicita consentimiento informado conforme a la Ley 1581 de 2012.
+2. **Captura de perfil (`apps/mobile/app/profile/index.tsx`):** Formulario accesible paso a paso con controles táctiles amplios ($\ge 48\text{ dp}$) para municipio, educación, experiencia laboral, situación actual, intereses y disponibilidad.
+3. **Oportunidades recomendadas (`apps/mobile/app/recommendations/index.tsx`):** Lista con virtualización óptima que presenta deliberadamente 4 o 5 opciones verificadas para reducir la sobrecarga cognitiva. Incluye badges de vigencia con texto e íconos y razones transparentes.
+4. **Detalle de la oportunidad (`apps/mobile/app/opportunity/[id].tsx`):** Explicación en lenguaje claro, lista de requisitos, evidencia de verificación por el equipo y botón de postulación oficial.
+5. **Apertura oficial (`apps/mobile/src/utils/url.ts`):** Redirección segura hacia el sitio web oficial de la entidad convocante mediante el navegador del sistema (`expo-web-browser`), sin WebViews internos.
+
+Documentos de prueba y demostración:
+
+- [Guion de la demostración funcional en vivo](docs/demo/guia-demostracion.md)
+- [Guía de pruebas en dispositivo Android real (TalkBack y Accessibility Scanner)](docs/demo/guia-pruebas-android.md)
+- [Informe de pruebas, rendimiento, limitaciones y conclusiones (Juan)](docs/informe/pruebas-limitaciones-y-conclusiones.md)
 
 ### Base de datos local (requiere Docker)
 

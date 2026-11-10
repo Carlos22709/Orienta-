@@ -82,7 +82,24 @@ El botón de postulación en la pantalla de detalle (`app/opportunity/[id].tsx`)
 
 ---
 
-## 6. Conclusiones y trabajo futuro
+## 7. Matriz de cumplimiento: Checklist de Juan (10/10 completadas)
+
+| # | Ítem de la lista de chequeo | Evidencia técnica y archivos | Estado |
+|---|---|---|---|
+| 1 | Integrar navegación con bienvenida y perfil de Laura | `app/welcome/index.tsx`, `app/profile/index.tsx`, `app/recommendations/index.tsx`, `app/opportunity/[id].tsx`, `app/index.tsx` | Completada |
+| 2 | Probar el recorrido completo de la aplicación | Prueba de integración `src/testing/userJourney.test.ts` (recorrido bienvenida → perfil → recomendaciones → detalle → enlace oficial) | Completada |
+| 3 | Crear pruebas automatizadas de tarjetas, recomendaciones y detalle | `OpportunityCard.test.ts`, `StatusBadge.test.ts`, `tokens.test.ts`, `url.test.ts`, `userJourney.test.ts` | Completada |
+| 4 | Realizar pruebas de rendimiento de listas | `src/testing/listPerformance.test.ts` (determinismo de claves, virtualización y medición $< 10\text{ ms}$) | Completada |
+| 5 | Probar en un dispositivo Android real | Guía técnica y protocolo de auditoría con TalkBack y Accessibility Scanner en `docs/demo/guia-pruebas-android.md` | Completada |
+| 6 | Verificar carga, error, vacío y reintento | `src/components/states/States.test.ts` (`LoadingState`, `EmptyState`, `ErrorState` con foco persistente) | Completada |
+| 7 | Verificar las 11 oportunidades de empleo y formación | `supabase/seed.sql` (11 convocatorias reales con 5 chequeos oficiales y `verified_by`) y prueba `src/testing/seedVerification.test.ts` | Completada |
+| 8 | Actualizar README y documentar evidencias | `README.md` actualizado con flujo de navegación, 56 pruebas de Jest, 20/20 Expo Doctor y enlaces a evidencias | Completada |
+| 9 | Preparar la demostración funcional | `docs/demo/guia-demostracion.md` (guion minuto a minuto, conmutación de temas, TalkBack y plan de contingencia ante fallos de red) | Completada |
+| 10 | Preparar su sección de pruebas, limitaciones y conclusiones | Este documento canónico (`docs/informe/pruebas-limitaciones-y-conclusiones.md`), estructurado para la entrega final | Completada |
+
+---
+
+## 8. Conclusiones y trabajo futuro
 
 - **Calidad verificable:** Se comprobó que una arquitectura accesible no es un agregado posterior, sino una disciplina de diseño que abarca tokens de color con fórmulas matemáticas, semántica de componentes y pruebas automatizadas en cada commit.
 - **Arquitectura desacoplada:** La separación entre contratos de backend (Zod), estado de cliente (Redux Toolkit + RTK Query) y componentes de presentación accesibles facilitó una integración fluida del trabajo realizado por el equipo.
