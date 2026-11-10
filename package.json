@@ -4,10 +4,11 @@
   "description": "Orienta+: herramientas del backend (Supabase CLI y Deno). La app móvil vive en apps/mobile con sus propias dependencias.",
   "scripts": {
     "supabase": "supabase",
-    "api:test": "deno test --config supabase/functions/api/deno.json supabase/functions",
+    "api:test": "deno test --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
     "api:check": "deno check --config supabase/functions/api/deno.json supabase/functions/api/index.ts",
-    "api:lint": "deno lint --config supabase/functions/api/deno.json supabase/functions",
-    "api:fmt": "deno fmt --config supabase/functions/api/deno.json supabase/functions",
+    "api:lint": "deno lint --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
+    "api:fmt": "deno fmt --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
+    "api:fmt:check": "deno fmt --check --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
     "api:serve": "deno serve --port 8787 --config supabase/functions/api/deno.json supabase/functions/api/index.ts"
   },
   "devDependencies": {
