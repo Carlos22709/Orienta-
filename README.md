@@ -25,6 +25,7 @@ apps/mobile/            app Expo
 supabase/
   config.toml           configuración local de Supabase
   functions/api/        API propia (Hono): app.ts, routes/, pruebas *.test.ts
+  functions/_shared/    código compartido; domain/ = lógica pura de recomendación
 docs/
   decisions/            decisiones técnicas y de alcance
   architecture/         modelo de datos, endpoints y flujos
@@ -81,7 +82,7 @@ npx expo start
 | `npm run api:test` | Raíz | Pruebas de la API con `deno test` |
 | `npm run api:check` | Raíz | Tipos del punto de entrada de la función |
 | `npm run api:lint` | Raíz | Lint de Deno |
-| `npm run api:fmt` | Raíz | Formatea el código de la función |
+| `npm run api:fmt:check` | Raíz | Verifica el formato sin modificar archivos (`api:fmt` lo corrige) |
 | `npm run typecheck` | `apps/mobile` | Tipos de la app con `tsc --noEmit` |
 | `npx expo-doctor` | `apps/mobile` | Compatibilidad de dependencias con el SDK |
 

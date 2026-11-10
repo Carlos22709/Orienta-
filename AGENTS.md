@@ -49,7 +49,7 @@ Registra la ruta exacta del componente y la evidencia de validación para alimen
 
 Los comandos verificados están en `README.md`; no inventes otros. Resumen:
 
-- Backend (desde la raíz): `npm install`, `npm run api:test`, `npm run api:check`, `npm run api:lint`, `npm run api:serve`.
+- Backend (desde la raíz): `npm install`, `npm run api:test`, `npm run api:check`, `npm run api:lint`, `npm run api:fmt:check`, `npm run api:serve`. Deno ignora las carpetas que empiezan por `_` al recibir un directorio, por eso los scripts listan `supabase/functions/_shared` de forma explícita; mantenlo así al agregar carpetas.
 - App (desde `apps/mobile`): `npm install`, `npm run typecheck`, `npx expo-doctor`, `npx expo start`.
 - Instala dependencias de la app con `npx expo install <paquete>` para respetar las versiones del SDK 58. No uses `npm audit fix --force` ni `--legacy-peer-deps`.
 
