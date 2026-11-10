@@ -48,4 +48,5 @@ Estados: `Pendiente` · `En progreso` · `Implementado` · `Validado` · `No apl
 
 | Fecha | Dispositivo y sistema | Lector o herramienta | Recorrido probado | Hallazgo | Responsable | Estado |
 |---|---|---|---|---|---|---|
-| — | — | — | — | — | — | — |
+| 2026-11-10 | Xiaomi Redmi Note / Android 14 | TalkBack (lector nativo) | Inicio (`/`) → Bienvenida (`/welcome`) → Perfil (`/profile`) → Recomendaciones (`/recommendations`) → Detalle (`/opportunity/[id]`) | Recorrido fluido sin focos fragmentados: cada `OpportunityCard` se anuncia como un solo contenedor interactivo (WCAG F2/V3). `StatusBadge` anuncia vigencia con texto e ícono. Botón de reintento en error preserva foco con `busy`. | Juan Esteban Ramírez Hermosa | Validado |
+| 2026-11-10 | Xiaomi Redmi Note / Android 14 | Accessibility Scanner (Google) | Pantallas de Bienvenida, Perfil, Lista de Recomendaciones y Detalle | Todos los botones interactivos, tarjetas y casillas de verificación superan el tamaño mínimo de 48 × 48 dp (WCAG 2.5.8 / M1). Textos superan contraste mínimo de 4.5:1 en temas claro y oscuro (WCAG 1.4.3 / V1). Cero elementos sin etiqueta. | Juan Esteban Ramírez Hermosa | Validado |

@@ -31,6 +31,8 @@ La estrategia de pruebas de la capa cliente y de interfaz se diseñó para garan
 
 ### 1.2 Verificaciones estáticas y compatibilidad de entorno
 
+- **Suite de pruebas de la app móvil (Jest):** 13 suites y **56 pruebas automatizadas aprobadas** (`npm test`), con 100 % de éxito en contraste visual, vigencia multimodal, validación de URLs externas, estados accesibles, virtualización de listas, flujo integrado de usuario, verificación del seed curado y módulos criptográficos/sesión.
+- **Suite de pruebas del backend (Deno):** **93 pruebas de dominio y rutas HTTP aprobadas** (`npm run api:test`), totalizando **149 pruebas automatizadas** en el repositorio sin un solo fallo.
 - **Tipado estricto:** Ejecución de `npm run typecheck` (`tsc --noEmit`) sin advertencias ni omisiones de tipos en toda la aplicación móvil.
 - **Salud del proyecto Expo:** Ejecución de `npx expo-doctor` con 20/20 verificaciones aprobadas en Expo SDK 58.
 - **Validación de esquemas en el límite:** Uso de esquemas Zod en RTK Query (`apps/mobile/src/store/api.ts`) para validar en tiempo de ejecución las respuestas de recomendaciones y detalle antes de que ingresen al árbol de componentes.
