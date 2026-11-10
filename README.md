@@ -120,4 +120,4 @@ El avance y la evidencia de cada compromiso están en la [matriz de trazabilidad
 
 ## Forma de trabajo
 
-Ramas cortas, pull requests con revisión cruzada y commits con gitmoji, según [`docs/decisions/0008-flujo-de-trabajo-git.md`](docs/decisions/0008-flujo-de-trabajo-git.md). Las reglas para agentes de IA están en [`AGENTS.md`](AGENTS.md).
+Ramas cortas que integra su propio autor después de pasar las verificaciones ([decisión 0009](docs/decisions/0009-integracion-sin-revision-obligatoria.md)), y commits con gitmoji y sin *squash* ([decisión 0008](docs/decisions/0008-flujo-de-trabajo-git.md)). Las reglas para agentes de IA están en [`AGENTS.md`](AGENTS.md).

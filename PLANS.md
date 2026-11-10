@@ -2,7 +2,7 @@
 
 ## 1. Objetivo
 
-Organizar la construcción y entrega de Orienta+ entre tres integrantes, con responsabilidades claras, revisión cruzada, participación verificable en Git y conocimiento compartido para la defensa técnica individual.
+Organizar la construcción y entrega de Orienta+ entre tres integrantes, con responsabilidades claras, conocimiento cruzado, participación verificable en Git y conocimiento compartido para la defensa técnica individual.
 
 Integrantes:
 
@@ -114,7 +114,7 @@ Conocimiento adicional requerido:
 | Documento: pruebas y conclusiones | Juan | Laura | Carlos |
 | Revisión final de requisitos | Los tres | Los tres | Los tres |
 
-El responsable implementa y documenta. El revisor prueba y solicita correcciones. El respaldo debe poder ubicar los archivos, explicar el flujo y realizar un cambio pequeño en vivo.
+El responsable implementa, verifica y documenta, y él mismo integra a `main` (decisión 0009). La columna "Revisor" indica quién debería leer el cambio cuando haya tiempo; no es obligatorio aprobarlo. El respaldo **sí** es obligatorio: debe poder ubicar los archivos, explicar el flujo y realizar un cambio pequeño en vivo.
 
 ## 5. Fase 1 — Fundamentos y recorrido base
 
@@ -158,7 +158,7 @@ Establecer una base ejecutable, documentada y accesible sobre la cual integrar e
 - Existe navegación entre las pantallas principales.
 - La fuente de datos puede consultarse desde la aplicación.
 - Los comandos verificados están documentados.
-- Cada cambio principal fue revisado por otra persona.
+- Cada cambio principal pasó las verificaciones automáticas antes de integrarse.
 
 ## 6. Fase 2 — Flujo funcional de extremo a extremo
 
@@ -191,11 +191,11 @@ Completar el recorrido perfil → recomendaciones → detalle → canal oficial.
 - probar navegación y recorrido completo;
 - revisar rendimiento y claves estables de las listas.
 
-### Revisión cruzada
+### Lectura cruzada (opcional, para preparar la defensa)
 
-- Laura revisa la experiencia de resultados de Juan.
-- Carlos revisa la integración del perfil de Laura con el modelo.
-- Juan revisa y prueba las reglas de recomendación de Carlos.
+- Laura lee la experiencia de resultados de Juan.
+- Carlos lee la integración del perfil de Laura con el modelo.
+- Juan lee y prueba las reglas de recomendación de Carlos.
 
 ### Criterios de salida
 
@@ -296,7 +296,7 @@ No sacrificar el recorrido funcional, accesibilidad o evidencia para agregar fun
 2. Usar ramas cortas, por ejemplo `feature/profile`, `feature/recommendations` y `feature/opportunity-results`.
 3. Realizar commits pequeños que representen unidades reales de trabajo.
 4. Integrar cambios con frecuencia para detectar incompatibilidades.
-5. Otra persona debe revisar comportamiento, accesibilidad y claridad.
+5. El autor integra su propio cambio a `main` después de pasar las verificaciones; la revisión de otra persona es opcional (decisión 0009).
 6. No dividir commits artificialmente para aparentar participación.
 7. No subir `.env`, secretos, credenciales ni datos personales reales.
 8. Antes de integrar, ejecutar las verificaciones disponibles y registrar cualquier fallo.
@@ -312,7 +312,7 @@ Una tarea solo se cierra cuando:
 - contempla estados alternos relevantes;
 - aplica accesibilidad en el código;
 - cuenta con pruebas o evidencia proporcional al riesgo;
-- fue revisada por otra persona;
+- pasó las verificaciones automáticas disponibles antes de integrarse;
 - no introduce secretos ni complejidad innecesaria;
 - actualiza documentación cuando cambia el comportamiento;
 - el responsable y el respaldo pueden explicarla.
@@ -323,7 +323,7 @@ En cada punto de control, cada integrante debe responder:
 
 1. ¿Qué requisito cerró con evidencia?
 2. ¿Qué bloqueo necesita resolver?
-3. ¿Qué cambio de otra persona revisó?
+3. ¿Qué verificaciones ejecutó antes de integrar?
 4. ¿Qué módulo ajeno aprendió a explicar?
 
 Cada punto de control debe incluir una demostración del producto funcionando y una redistribución inmediata si una persona concentra demasiado riesgo.
@@ -336,7 +336,8 @@ Cada punto de control debe incluir una demostración del producto funcionando y 
 | Integración tardía | Integrar cambios pequeños desde la primera fase | Juan |
 | Accesibilidad superficial | Aplicarla en cada componente y auditar con lector de pantalla | Laura |
 | Documento desconectado del código | Citar archivos y evidencia real; no afirmar funciones inexistentes | Los tres |
-| Conocimiento concentrado | Revisión cruzada y preguntas técnicas aleatorias | Los tres |
+| Conocimiento concentrado | Lectura obligatoria del módulo del que se es respaldo y preguntas técnicas aleatorias | Los tres |
+| Errores sin una segunda mirada (no hay revisión obligatoria) | Verificaciones automáticas obligatorias antes de integrar a `main` | Autor de cada cambio |
 | Fallo de red durante la demostración | Implementar error, reintento y contingencia claramente identificada | Juan |
 | Credenciales expuestas | Revisar `.env`, historial y configuración | Carlos |
 

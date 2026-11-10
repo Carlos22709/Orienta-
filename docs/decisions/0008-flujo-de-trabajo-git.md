@@ -1,6 +1,6 @@
 # 0008 — Flujo de trabajo en Git y GitHub
 
-- **Estado:** propuesta del agente, aprobada por delegación de Carlos; pendiente de ratificación por Laura y Juan.
+- **Estado:** reemplazada parcialmente por [0009](0009-integracion-sin-revision-obligatoria.md). Las reglas de PR con aprobación obligatoria y de protección de `main` ya no aplican. Siguen vigentes el formato de commits, la ausencia de coautoría, la integración sin *squash* y el manejo de secretos.
 - **Fecha:** 2026-11-09.
 
 ## Contexto

@@ -20,11 +20,12 @@ Cada archivo de esta carpeta registra una decisión técnica o de alcance: conte
 | [0005](0005-reglas-de-recomendacion.md) | Reglas de vigencia, elegibilidad, ranking y selección | Propuesta del agente aprobada por delegación de Carlos, pendiente de ratificación | 2026-11-09 |
 | [0006](0006-identidad-visual-y-tokens.md) | Identidad visual, temas claro/oscuro y tokens con contraste verificado | Propuesta del agente aprobada por delegación de Carlos, pendiente de ratificación | 2026-11-09 |
 | [0007](0007-curacion-de-oportunidades.md) | Curación y verificación de oportunidades reales, reparto y perfiles de prueba | Propuesta del agente aprobada por delegación de Carlos, pendiente de ratificación | 2026-11-09 |
-| [0008](0008-flujo-de-trabajo-git.md) | Flujo de trabajo en Git y GitHub | Propuesta del agente aprobada por delegación de Carlos, pendiente de ratificación | 2026-11-09 |
+| [0008](0008-flujo-de-trabajo-git.md) | Flujo de trabajo en Git y GitHub | Reemplazada parcialmente por 0009 | 2026-11-09 |
+| [0009](0009-integracion-sin-revision-obligatoria.md) | Integración a `main` sin revisión obligatoria, con verificación previa | Aprobada por Carlos, pendiente de ratificación | 2026-11-09 |
 
 ## Responsables y cuentas
 
-- **Autenticación, sesión y 2FA:** Carlos (responsable), Juan (revisor), Laura (respaldo para la defensa).
+- **Autenticación, sesión y 2FA:** Carlos (responsable), Laura (respaldo para la defensa).
 - **Cuentas externas:** Carlos crea y administra el proyecto de Supabase, el cliente OAuth de Google Cloud y el repositorio de GitHub, y da acceso a Laura y Juan para que todos puedan ejecutar y explicar el sistema.
 
 Documentos de diseño derivados:
