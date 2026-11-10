@@ -1,7 +1,9 @@
 import { Hono } from "hono";
 import type { AppDependencies } from "./deps.ts";
 import { errorBody } from "./http/errors.ts";
+import { accountRoutes } from "./routes/account.ts";
 import { catalogRoutes } from "./routes/catalog.ts";
+import { mfaRoutes } from "./routes/mfa.ts";
 import { healthRoutes } from "./routes/health.ts";
 import { opportunityRoutes } from "./routes/opportunities.ts";
 import { profileRoutes } from "./routes/profile.ts";
@@ -23,6 +25,8 @@ export function createApp(deps: AppDependencies) {
   app.route("/me/profile", profileRoutes(deps));
   app.route("/recommendations", recommendationRoutes(deps));
   app.route("/opportunities", opportunityRoutes(deps));
+  app.route("/mfa", mfaRoutes(deps));
+  app.route("/me", accountRoutes(deps));
 
   app.notFound((c) =>
     c.json(errorBody("not_found", "La ruta solicitada no existe."), 404)
