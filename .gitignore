@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+
+# Variables de entorno: solo se versiona .env.example
+.env
+.env.*
+!.env.example
+
+# Expo y Metro
+.expo/
+dist/
+web-build/
+.metro-health-check*
+
+# Supabase CLI (estado local)
+supabase/.temp/
+supabase/.branches/
+
+# Pruebas y cobertura
+coverage/
+
+# Registros
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Sistema operativo y editores
+.DS_Store
+Thumbs.db
+.idea/
