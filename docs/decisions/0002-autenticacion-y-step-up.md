@@ -63,7 +63,7 @@ Se implementa en el `baseQuery` de RTK Query (ver [0003](0003-estado-del-cliente
   - la respuesta es el URI `otpauth://totp/Orienta+:<correo>?secret=<BASE32>&issuer=Orienta+`;
   - la app lo muestra como código QR y como texto copiable;
   - `POST /mfa/enroll/confirm` activa el factor solo después de verificar un primer código válido.
-- **Verificación RFC 6238 escrita por el equipo** en `supabase/functions/_shared/domain/totp.ts`:
+- **Verificación RFC 6238 escrita por el equipo** en `supabase/functions/_shared/security/totp.ts` (Base32 propio en `base32.ts` y cifrado del secreto en `secret-encryption.ts`, en la misma carpeta):
   1. `T = floor(unix / 30)`, codificado como entero de 64 bits big-endian (8 bytes);
   2. `H = HMAC-SHA1(secreto, T)` con Web Crypto;
   3. truncamiento dinámico: `offset = H[19] & 0x0F`;

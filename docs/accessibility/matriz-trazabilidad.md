@@ -37,7 +37,7 @@ Estados: `Pendiente` · `En progreso` · `Implementado` · `Validado` · `No apl
 | F2 | Agrupación de contenedores táctiles para evitar foco fragmentado | 1.3.1, 2.4.3 | `OpportunityCard.tsx`, filas de formulario | Recorrido con lector: cada tarjeta se anuncia como una sola unidad | Pendiente |
 | F3 | Retroalimentación clara ante errores y estados de carga, vacío, error y reintento | 3.3.1, 4.1.3 | Patrón inicial en `apps/mobile/app/index.tsx`: carga, éxito y error con reintento; anuncio con `AccessibilityInfo.announceForAccessibility`; botón con `accessibilityState` `busy`/`disabled` que se mantiene montado para no perder el foco. Pendiente extraerlo a componentes de estado reutilizables. | Simular red caída y respuestas vacías; verificar anuncios del lector (no ejecutado aún en dispositivo) | En progreso |
 | F4 | `hitSlop` donde un elemento visual sea menor que el área táctil mínima | 2.5.8 | Íconos de acción | Accessibility Scanner | Pendiente |
-| S1 | Autenticación accesible: el código TOTP admite pegar y autocompletar, con teclado numérico | 3.3.8 | Campo de código del modal de step-up (`oneTimeCode` / `one-time-code`) | Pegar un código desde la app autenticadora con el lector activo | Pendiente |
+| S1 | Autenticación accesible: el código TOTP admite pegar y autocompletar, con teclado numérico | 3.3.8 | Backend: `supabase/functions/_shared/security/totp.ts` (`verifyTotp` acepta el código pegado con espacios, ya implementado). Pendiente: campo de código del modal de step-up (`oneTimeCode` / `one-time-code`) | Prueba "verifyTotp acepta un código pegado con espacios" en `totp.test.ts` (pasa). Pendiente: pegar un código desde la app autenticadora con el lector activo | En progreso |
 
 ## 3. Diferencias de criterio registradas
 
