@@ -100,11 +100,17 @@ npx supabase db reset
 # Pruebas pgTAP del esquema (supabase/tests/database/)
 npx supabase test db
 
+# Prueba de integración de la API: crea un usuario local, recorre todos los
+# endpoints y limpia lo que crea (requiere Node y Docker)
+bash scripts/prueba-integracion-local.sh
+
 # Detiene los contenedores
 npx supabase stop
 ```
 
-La primera vez, `supabase start` descarga varias imágenes de Docker y puede tardar varios minutos.
+La primera vez, `supabase start` descarga varias imágenes de Docker y puede tardar varios minutos. Sin excluir `edge-runtime`, `supabase start` también sirve la función `api` en `http://127.0.0.1:54321/functions/v1/api`, con las variables de Supabase ya inyectadas. Para la app en el teléfono, usa `EXPO_PUBLIC_API_URL=http://<IP-del-computador>:54321/functions/v1/api`.
+
+`npm run api:serve` sirve la función sin Supabase: solo responde `/api/health`, y las demás rutas devuelven 500 por falta de configuración.
 
 ## Accesibilidad
 

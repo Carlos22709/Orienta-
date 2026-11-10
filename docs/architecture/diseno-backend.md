@@ -153,6 +153,28 @@ Todas las respuestas de error usan el formato `{ "error": "<codigo>", "message":
 
 Supabase Auth, que no es código propio, atiende `authorize`, el canje `grant_type=pkce`, la renovación `grant_type=refresh_token` y `logout`.
 
+### Estado de implementación
+
+`/health`, `/catalog`, `/me/profile` (`GET` y `PUT`), `/recommendations` y `/opportunities/:id` están implementados en `supabase/functions/api/routes/`. Los endpoints de MFA y de acciones críticas siguen pendientes.
+
+Códigos de error implementados:
+
+| Código | HTTP | Cuándo |
+|---|---|---|
+| `unauthorized` | 401 | Falta el `access_token`, es inválido o venció. La app reacciona renovando la sesión. |
+| `invalid_json` | 400 | El cuerpo de la petición no es JSON. |
+| `validation_error` | 422 | Algún campo es inválido. Incluye `fields: { campo: mensaje }` en lenguaje claro: formato, edad fuera de 18–29, municipio fuera de alcance, campo desconocido o consentimiento de otra versión. |
+| `consent_required` | 409 | Se intenta crear el perfil sin aceptar el consentimiento. |
+| `profile_incomplete` | 409 | Se piden recomendaciones con el perfil incompleto. Incluye `missingFields`. |
+| `not_found` | 404 | La ruta o la oportunidad no existen. |
+| `internal_error` | 500 | Error no controlado; el detalle solo queda en los registros del servidor. |
+
+`GET /recommendations` devuelve `{ items, insufficient, message }`. `message` es `null` cuando hay 4 o 5 resultados, y un texto en lenguaje claro cuando hay menos o ninguno.
+
+**Pruebas:**
+- unitarias, con dobles en memoria: `supabase/functions/api/**/*.test.ts`;
+- de integración contra Supabase local: `scripts/prueba-integracion-local.sh`.
+
 ## 4. Flujos principales
 
 ### 4.1 Inicio de sesión con PKCE
