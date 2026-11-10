@@ -1,0 +1,13 @@
+# Finales de línea LF en el repositorio y en las copias de trabajo, para que
+# deno fmt y los diffs se comporten igual en Windows, macOS y Linux.
+* text=auto eol=lf
+
+# Binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ttf binary
+*.otf binary
+*.pdf binary
