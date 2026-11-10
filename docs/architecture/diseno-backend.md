@@ -145,17 +145,18 @@ Todas las respuestas de error usan el formato `{ "error": "<codigo>", "message":
 | `PUT` | `/me/profile` | `access_token` | Guarda uno o varios pasos del perfil. Exige consentimiento registrado. Responde `422` con errores por campo. |
 | `GET` | `/recommendations` | `access_token` | Entre 4 y 5 oportunidades vigentes y elegibles para el perfil guardado, cada una con su razón. Responde `409 profile_incomplete` si falta información. |
 | `GET` | `/opportunities/:id` | `access_token` | Detalle: requisitos, entidad, fuente, vigencia, verificación y enlace oficial. Registra la vista. |
-| `POST` | `/mfa/enroll` | `access_token` | Genera el secreto y devuelve el URI `otpauth://`. |
-| `POST` | `/mfa/enroll/confirm` | `access_token` | Activa el factor tras validar un primer código. |
-| `POST` | `/mfa/verify` | `access_token` + `step_up_token` | Valida el código TOTP y devuelve `elevated_token`. Errores: `401 invalid_code`, `409 replay_detected`, `410 step_up_expired`. |
-| `GET` | `/me/data-export` | `access_token` + `X-Elevated-Token` | Exporta los datos personales (Ley 1581). Sin elevación: `403 mfa_required`. |
+| `GET` | `/mfa/status` | `access_token` | `{ enrolled }`: indica si el 2FA está activo. |
+| `POST` | `/mfa/enroll` | `access_token` | `201` con `{ otpauthUri, secret }`. `secret` es la semilla en Base32 para escribirla a mano. `409 mfa_already_enrolled` si el 2FA ya está activo. |
+| `POST` | `/mfa/enroll/confirm` | `access_token` | `{ code }` → activa el factor. `422 invalid_code`; `409 mfa_not_pending` si no hay inscripción pendiente. |
+| `POST` | `/mfa/verify` | `access_token` | `{ stepUpToken, code }` → `{ elevatedToken, expiresAt }`. Errores: `422 invalid_code` (no 401, para no disparar la renovación de sesión de la app), `409 replay_detected`, `410 step_up_expired`. Un código incorrecto no gasta el reto. |
+| `GET` | `/me/data-export` | `access_token` + `X-Elevated-Token` | Exporta cuenta, perfil, oportunidades vistas y estado del 2FA, nunca el secreto (Ley 1581). Sin elevación: `403 mfa_required` con `{ stepUpToken, expiresAt }`, o `403 mfa_enrollment_required` si el 2FA no está activo. |
 | `DELETE` | `/me` | `access_token` + `X-Elevated-Token` | Elimina perfil, vistas, factor MFA y la cuenta. Sin elevación: `403 mfa_required`. |
 
 Supabase Auth, que no es código propio, atiende `authorize`, el canje `grant_type=pkce`, la renovación `grant_type=refresh_token` y `logout`.
 
 ### Estado de implementación
 
-`/health`, `/catalog`, `/me/profile` (`GET` y `PUT`), `/recommendations` y `/opportunities/:id` están implementados en `supabase/functions/api/routes/`. Los endpoints de MFA y de acciones críticas siguen pendientes.
+Todos los endpoints de esta tabla están implementados en `supabase/functions/api/routes/`. El step-up está en `api/middleware/elevation.ts`.
 
 Códigos de error implementados:
 

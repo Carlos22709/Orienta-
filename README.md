@@ -90,6 +90,12 @@ Estos comandos se ejecutaron con éxito el 2026-11-09, salvo `npx expo start` en
 
 ### Base de datos local (requiere Docker)
 
+Antes de la primera vez, crea `supabase/.env` a partir de `supabase/.env.example`. Contiene los secretos locales del 2FA y no se versiona:
+
+```bash
+node -e "const c=require('crypto');const r=()=>c.randomBytes(32).toString('base64');require('fs').writeFileSync('supabase/.env','TOTP_ENCRYPTION_KEY='+r()+'\nELEVATED_TOKEN_SECRET='+r()+'\n')"
+```
+
 ```bash
 # Levanta solo lo necesario: Postgres, Auth, PostgREST y el gateway
 npx supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
@@ -122,6 +128,16 @@ npx supabase functions deploy api           # despliega la API
 ```
 
 `db push` no carga `supabase/seed.sql`: hay que ejecutarlo en el SQL Editor del dashboard.
+
+Los secretos del 2FA en la nube se generan y se cargan sin mostrarlos. En PowerShell:
+
+```powershell
+$k = node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+$s = node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+npx supabase secrets set "TOTP_ENCRYPTION_KEY=$k" "ELEVATED_TOKEN_SECRET=$s"
+```
+
+Si `TOTP_ENCRYPTION_KEY` cambia, los factores TOTP ya inscritos dejan de poder descifrarse y cada persona debe inscribirse de nuevo.
 
 `npm run api:serve` sirve la función sin Supabase: solo responde `/api/health`, y las demás rutas devuelven 500 por falta de configuración.
 

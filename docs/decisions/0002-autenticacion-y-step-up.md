@@ -85,7 +85,7 @@ Las acciones críticas son los derechos de la Ley 1581 sobre los propios datos:
 
 Flujo:
 
-1. Si la petición llega sin un `elevated_token` válido, la API responde `403` con `{ "error": "mfa_required", "step_up_token": "…" }`.
+1. Si la petición llega sin un `elevated_token` válido, la API responde `403` con `{ "error": "mfa_required", "stepUpToken": "…", "expiresAt": "…" }`. Los nombres van en camelCase, como el resto de la API.
    - El `step_up_token` es aleatorio, de un solo uso y expira en 5 minutos. Se guarda su hash en `step_up_challenges`.
    - Si la persona no ha inscrito el 2FA, la respuesta es `403` con `{ "error": "mfa_enrollment_required" }` y la app la lleva a inscribirlo.
 2. La app atrapa el `403`, abre el modal de verificación y envía `step_up_token` + código a `POST /mfa/verify`.
