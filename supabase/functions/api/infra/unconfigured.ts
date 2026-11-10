@@ -7,7 +7,7 @@ import type { AppDependencies, Repository } from "../deps.ts";
  * mensaje claro en los registros del servidor.
  */
 const MISSING_CONFIG =
-  "Falta configurar SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY. Sirve la función con `npx supabase functions serve`.";
+  "Falta configurar SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY. Sirve la función con `npx supabase start`.";
 
 function fail(): Promise<never> {
   return Promise.reject(new Error(MISSING_CONFIG));
@@ -21,6 +21,15 @@ const unconfiguredRepository: Repository = {
   listActiveOpportunities: fail,
   getOpportunity: fail,
   recordView: fail,
+  listOpportunityViews: fail,
+  getMfaFactor: fail,
+  startMfaEnrollment: fail,
+  confirmMfaFactor: fail,
+  consumeTotpStep: fail,
+  createStepUpChallenge: fail,
+  findActiveStepUpChallenge: fail,
+  consumeStepUpChallenge: fail,
+  deleteUser: fail,
 };
 
 export function createUnconfiguredDependencies(): AppDependencies {
@@ -28,5 +37,6 @@ export function createUnconfiguredDependencies(): AppDependencies {
     auth: { verifyAccessToken: fail },
     repository: unconfiguredRepository,
     now: () => new Date(),
+    secrets: { totpEncryptionKey: null, elevatedTokenSecret: null },
   };
 }

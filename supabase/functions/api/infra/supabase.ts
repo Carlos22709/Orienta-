@@ -1,10 +1,15 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { decodeHex, encodeHex } from "@std/encoding";
 import type {
   AppDependencies,
+  AppSecrets,
   AuthUser,
   AuthVerifier,
+  CriticalAction,
+  MfaFactor,
   Municipality,
   OpportunityRecord,
+  OpportunityView,
   Repository,
   StoredProfile,
 } from "../deps.ts";
@@ -44,13 +49,27 @@ const OPPORTUNITY_COLUMNS = [
 export interface SupabaseConfig {
   url: string;
   secretKey: string;
+  secrets: AppSecrets;
 }
 
-/** Lee la configuración que el runtime de Supabase inyecta en la función. */
+/**
+ * Lee la configuración del entorno de la función. SUPABASE_URL y
+ * SUPABASE_SERVICE_ROLE_KEY los inyecta Supabase; TOTP_ENCRYPTION_KEY y
+ * ELEVATED_TOKEN_SECRET son propios (supabase/.env en local y
+ * `supabase secrets set` en la nube).
+ */
 export function readSupabaseConfig(): SupabaseConfig | null {
   const url = Deno.env.get("SUPABASE_URL");
   const secretKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
-  return url && secretKey ? { url, secretKey } : null;
+  if (!url || !secretKey) return null;
+  return {
+    url,
+    secretKey,
+    secrets: {
+      totpEncryptionKey: Deno.env.get("TOTP_ENCRYPTION_KEY") ?? null,
+      elevatedTokenSecret: Deno.env.get("ELEVATED_TOKEN_SECRET") ?? null,
+    },
+  };
 }
 
 export function createSupabaseDependencies(
@@ -63,6 +82,7 @@ export function createSupabaseDependencies(
     auth: new SupabaseAuthVerifier(client),
     repository: new SupabaseRepository(client),
     now: () => new Date(),
+    secrets: config.secrets,
   };
 }
 
@@ -170,6 +190,139 @@ export class SupabaseRepository implements Repository {
       );
     if (error) throw new Error(`opportunity_views: ${error.message}`);
   }
+
+  async listOpportunityViews(userId: string): Promise<OpportunityView[]> {
+    const { data, error } = await this.db
+      .from("opportunity_views")
+      .select("opportunity_id, first_viewed_at, opportunities(title)")
+      .eq("user_id", userId)
+      .order("first_viewed_at");
+    if (error) throw new Error(`opportunity_views: ${error.message}`);
+    // deno-lint-ignore no-explicit-any
+    return (data as any[]).map((row) => ({
+      opportunityId: row.opportunity_id,
+      title: row.opportunities?.title ?? "",
+      firstViewedAt: row.first_viewed_at,
+    }));
+  }
+
+  // --- Segundo factor y step-up ---
+
+  async getMfaFactor(userId: string): Promise<MfaFactor | null> {
+    const { data, error } = await this.db
+      .from("mfa_factors")
+      .select("secret_ciphertext, secret_iv, confirmed_at, last_used_step")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) throw new Error(`mfa_factors: ${error.message}`);
+    if (!data) return null;
+    return {
+      secretCiphertext: fromBytea(data.secret_ciphertext),
+      secretIv: fromBytea(data.secret_iv),
+      confirmedAt: data.confirmed_at,
+      lastUsedStep: data.last_used_step === null
+        ? null
+        : Number(data.last_used_step),
+    };
+  }
+
+  async startMfaEnrollment(
+    userId: string,
+    encrypted: { ciphertext: Uint8Array; iv: Uint8Array },
+  ): Promise<void> {
+    const { error } = await this.db.from("mfa_factors").upsert({
+      user_id: userId,
+      secret_ciphertext: toBytea(encrypted.ciphertext),
+      secret_iv: toBytea(encrypted.iv),
+      confirmed_at: null,
+      last_used_step: null,
+    });
+    if (error) throw new Error(`mfa_factors: ${error.message}`);
+  }
+
+  async confirmMfaFactor(
+    userId: string,
+    step: number,
+    confirmedAt: string,
+  ): Promise<boolean> {
+    const { data, error } = await this.db
+      .from("mfa_factors")
+      .update({ confirmed_at: confirmedAt, last_used_step: step })
+      .eq("user_id", userId)
+      .is("confirmed_at", null)
+      .select("user_id");
+    if (error) throw new Error(`mfa_factors: ${error.message}`);
+    return data.length === 1;
+  }
+
+  async consumeTotpStep(userId: string, step: number): Promise<boolean> {
+    const { data, error } = await this.db.rpc("consume_totp_step", {
+      p_user_id: userId,
+      p_step: step,
+    });
+    if (error) throw new Error(`consume_totp_step: ${error.message}`);
+    return data === true;
+  }
+
+  async createStepUpChallenge(challenge: {
+    userId: string;
+    tokenHash: string;
+    action: CriticalAction;
+    expiresAt: string;
+  }): Promise<void> {
+    const { error } = await this.db.from("step_up_challenges").insert({
+      user_id: challenge.userId,
+      token_hash: challenge.tokenHash,
+      action: challenge.action,
+      expires_at: challenge.expiresAt,
+    });
+    if (error) throw new Error(`step_up_challenges: ${error.message}`);
+  }
+
+  async findActiveStepUpChallenge(
+    tokenHash: string,
+    userId: string,
+    now: Date,
+  ): Promise<{ action: CriticalAction } | null> {
+    const { data, error } = await this.db
+      .from("step_up_challenges")
+      .select("action")
+      .eq("token_hash", tokenHash)
+      .eq("user_id", userId)
+      .is("consumed_at", null)
+      .gt("expires_at", now.toISOString())
+      .maybeSingle();
+    if (error) throw new Error(`step_up_challenges: ${error.message}`);
+    return data ? { action: data.action } : null;
+  }
+
+  async consumeStepUpChallenge(
+    tokenHash: string,
+  ): Promise<{ userId: string; action: CriticalAction } | null> {
+    const { data, error } = await this.db.rpc("consume_step_up_challenge", {
+      p_token_hash: tokenHash,
+    });
+    if (error) throw new Error(`consume_step_up_challenge: ${error.message}`);
+    const row = (data as Array<{ user_id: string; action: CriticalAction }>)
+      ?.[0];
+    return row ? { userId: row.user_id, action: row.action } : null;
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    // Borrar el usuario de Supabase Auth elimina en cascada perfil, vistas,
+    // factor TOTP y retos (ON DELETE CASCADE en la migración).
+    const { error } = await this.db.auth.admin.deleteUser(userId);
+    if (error) throw new Error(`auth.admin.deleteUser: ${error.message}`);
+  }
+}
+
+// PostgREST intercambia bytea como texto hexadecimal con prefijo "\x".
+function toBytea(bytes: Uint8Array): string {
+  return `\\x${encodeHex(bytes)}`;
+}
+
+function fromBytea(value: string): Uint8Array {
+  return decodeHex(value.startsWith("\\x") ? value.slice(2) : value);
 }
 
 // --- Conversión de filas (snake_case) a objetos de la API (camelCase) ---
