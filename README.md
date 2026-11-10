@@ -19,8 +19,9 @@ Proyecto del curso Desarrollo de Aplicaciones Móviles, Universidad de La Sabana
 ```
 apps/mobile/            app Expo
   app/                  pantallas (Expo Router)
+  src/auth/             sesión: PKCE, cliente REST de Supabase Auth, almacenamiento seguro
   src/config/           variables de entorno
-  src/store/            store de Redux y cliente de la API (RTK Query)
+  src/store/            store de Redux, cliente de la API (RTK Query) y cola de silent refresh
   src/theme/            tokens visuales accesibles
 supabase/
   config.toml           configuración local de Supabase
@@ -62,8 +63,10 @@ Copia `apps/mobile/.env.example` como `apps/mobile/.env` y completa los valores.
 | Variable | Descripción |
 |---|---|
 | `EXPO_PUBLIC_API_URL` | URL base de la API, terminada en `/api`. En el teléfono usa la IP local de tu computador, no `localhost`. |
+| `EXPO_PUBLIC_SUPABASE_URL` | URL del proyecto de Supabase (local: `http://<IP-del-computador>:54321`). La usa la app para iniciar y renovar la sesión. |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Clave *publishable* de Supabase. Es pública. **Nunca** pongas aquí la clave *secret*: todo lo que empieza por `EXPO_PUBLIC_` queda dentro de la app. |
 
-Las variables de autenticación y los secretos del backend se agregarán con sus módulos (ver [`docs/architecture/diseno-backend.md`](docs/architecture/diseno-backend.md#5-secretos-y-variables-de-entorno)).
+Los secretos del backend no van en la app (ver [`docs/architecture/diseno-backend.md`](docs/architecture/diseno-backend.md#5-secretos-y-variables-de-entorno)).
 
 ## Ejecución
 
@@ -84,9 +87,10 @@ npx expo start
 | `npm run api:lint` | Raíz | Lint de Deno |
 | `npm run api:fmt:check` | Raíz | Verifica el formato sin modificar archivos (`api:fmt` lo corrige) |
 | `npm run typecheck` | `apps/mobile` | Tipos de la app con `tsc --noEmit` |
+| `npm test` | `apps/mobile` | Pruebas de la app con Jest (`jest-expo`): PKCE, cliente de Supabase Auth, sesión y cola de silent refresh |
 | `npx expo-doctor` | `apps/mobile` | Compatibilidad de dependencias con el SDK |
 
-Estos comandos se ejecutaron con éxito el 2026-11-09, salvo `npx expo start` en un dispositivo, que todavía no se ha probado.
+Estos comandos se ejecutaron con éxito el 2026-11-10, salvo `npx expo start` en un dispositivo, que todavía no se ha probado.
 
 ### Base de datos local (requiere Docker)
 

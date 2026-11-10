@@ -249,8 +249,8 @@ sequenceDiagram
 | Variable | Dónde | Nota |
 |---|---|---|
 | `EXPO_PUBLIC_API_URL` | App (`apps/mobile/.env`) | Pública. URL base de la función `api`. **Ya existe** en `apps/mobile/.env.example`. |
-| `EXPO_PUBLIC_SUPABASE_URL` | App | Pública. Necesaria para Supabase Auth. |
-| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | App | Clave *publishable* de Supabase. Es pública y no da acceso a tablas porque RLS no tiene políticas para `anon` ni `authenticated`. |
+| `EXPO_PUBLIC_SUPABASE_URL` | App | Pública. Necesaria para Supabase Auth. **Ya existe** en `apps/mobile/.env.example`. |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | App | **Ya existe** en `apps/mobile/.env.example`. Clave *publishable* de Supabase. Es pública y no da acceso a tablas porque RLS no tiene políticas para `anon` ni `authenticated`. |
 | Clave *secret* de Supabase | Secreto de la Edge Function | Reemplaza a la antigua `service_role`. Nunca en la app ni en Git. |
 | `TOTP_ENCRYPTION_KEY` | Secreto de la Edge Function | Clave AES-GCM de 256 bits. |
 | `ELEVATED_TOKEN_SECRET` | Secreto de la Edge Function | Firma HS256 del `elevated_token`. |
