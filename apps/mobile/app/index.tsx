@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
@@ -38,6 +39,7 @@ const STATUS_ICONS: Record<Exclude<ServerStatus, 'checking'>, string> = {
  */
 export default function HomeScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const hasApiUrl = env.apiUrl !== null;
   const { isFetching, isSuccess, isError, refetch } = useGetHealthQuery(
     undefined,
@@ -123,6 +125,28 @@ export default function HomeScreen() {
             </Text>
           </View>
         </View>
+
+        {/* Acceso directo al flujo de recomendaciones (entregable de Juan) */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Ver recomendaciones de oportunidades"
+          accessibilityHint="Abre la lista de convocatorias recomendadas según el perfil"
+          onPress={() => router.push('/recommendations')}
+          style={({ pressed }) => [
+            styles.button,
+            { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
+          ]}
+        >
+          <Text
+            style={[
+              typography.body,
+              styles.buttonLabel,
+              { color: colors.onPrimary },
+            ]}
+          >
+            Ver oportunidades recomendadas →
+          </Text>
+        </Pressable>
 
         {showRetry && (
           <Pressable

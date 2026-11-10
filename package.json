@@ -9,7 +9,9 @@
     "api:lint": "deno lint --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
     "api:fmt": "deno fmt --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
     "api:fmt:check": "deno fmt --check --config supabase/functions/api/deno.json supabase/functions/api supabase/functions/_shared",
-    "api:serve": "deno serve --port 8787 --config supabase/functions/api/deno.json supabase/functions/api/index.ts"
+    "api:serve": "deno serve --port 8787 --config supabase/functions/api/deno.json supabase/functions/api/index.ts",
+    "mobile:typecheck": "npm --prefix apps/mobile run typecheck",
+    "mobile:test": "npm --prefix apps/mobile run test"
   },
   "devDependencies": {
     "deno": "^2.9.6",
