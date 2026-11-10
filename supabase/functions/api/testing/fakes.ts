@@ -1,10 +1,14 @@
 import { createApp } from "../app.ts";
 import type {
   AppDependencies,
+  AppSecrets,
   AuthUser,
   AuthVerifier,
+  CriticalAction,
+  MfaFactor,
   Municipality,
   OpportunityRecord,
+  OpportunityView,
   Repository,
   StoredProfile,
 } from "../deps.ts";
@@ -19,8 +23,20 @@ export const TEST_USER: AuthUser = {
   id: "00000000-0000-0000-0000-000000000001",
   email: "prueba@example.com",
 };
+export const OTHER_USER: AuthUser = {
+  id: "00000000-0000-0000-0000-000000000002",
+  email: "otra-persona@example.com",
+};
 export const VALID_TOKEN = "token-valido";
+export const OTHER_USER_TOKEN = "token-otra-persona";
 export const AUTH_HEADER = { Authorization: `Bearer ${VALID_TOKEN}` };
+
+/** Secretos solo de prueba (no se usan fuera de las pruebas). */
+export const TEST_SECRETS: AppSecrets = {
+  // 32 bytes en cero codificados en Base64.
+  totpEncryptionKey: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+  elevatedTokenSecret: "secreto-de-prueba-para-tokens-elevados-32+",
+};
 
 export const TEST_MUNICIPALITIES: Municipality[] = [
   { code: "11001", name: "Bogotá, D.C.", departmentName: "Bogotá, D.C." },
@@ -29,14 +45,30 @@ export const TEST_MUNICIPALITIES: Municipality[] = [
 
 export class FakeAuth implements AuthVerifier {
   verifyAccessToken(token: string): Promise<AuthUser | null> {
-    return Promise.resolve(token === VALID_TOKEN ? TEST_USER : null);
+    if (token === VALID_TOKEN) return Promise.resolve(TEST_USER);
+    if (token === OTHER_USER_TOKEN) return Promise.resolve(OTHER_USER);
+    return Promise.resolve(null);
   }
+}
+
+interface StoredChallenge {
+  userId: string;
+  tokenHash: string;
+  action: CriticalAction;
+  expiresAt: string;
+  consumedAt: string | null;
 }
 
 export class InMemoryRepository implements Repository {
   profiles = new Map<string, StoredProfile>();
   opportunities: OpportunityRecord[] = [];
   views: Array<{ userId: string; opportunityId: string }> = [];
+  mfaFactors = new Map<string, MfaFactor>();
+  challenges: StoredChallenge[] = [];
+  deletedUsers: string[] = [];
+
+  /** El reloj es el mismo de la app para simular vencimientos. */
+  constructor(private readonly now: () => Date = () => NOW) {}
 
   listMunicipalities() {
     return Promise.resolve(TEST_MUNICIPALITIES);
@@ -70,6 +102,87 @@ export class InMemoryRepository implements Repository {
       v.userId === userId && v.opportunityId === opportunityId
     );
     if (!seen) this.views.push({ userId, opportunityId });
+    return Promise.resolve();
+  }
+
+  listOpportunityViews(userId: string): Promise<OpportunityView[]> {
+    return Promise.resolve(
+      this.views.filter((v) => v.userId === userId).map((v) => ({
+        opportunityId: v.opportunityId,
+        title: this.opportunities.find((o) => o.id === v.opportunityId)
+          ?.title ?? "",
+        firstViewedAt: this.now().toISOString(),
+      })),
+    );
+  }
+
+  getMfaFactor(userId: string) {
+    return Promise.resolve(this.mfaFactors.get(userId) ?? null);
+  }
+
+  startMfaEnrollment(
+    userId: string,
+    encrypted: { ciphertext: Uint8Array; iv: Uint8Array },
+  ) {
+    this.mfaFactors.set(userId, {
+      secretCiphertext: encrypted.ciphertext,
+      secretIv: encrypted.iv,
+      confirmedAt: null,
+      lastUsedStep: null,
+    });
+    return Promise.resolve();
+  }
+
+  confirmMfaFactor(userId: string, step: number, confirmedAt: string) {
+    const factor = this.mfaFactors.get(userId);
+    if (!factor || factor.confirmedAt !== null) return Promise.resolve(false);
+    factor.confirmedAt = confirmedAt;
+    factor.lastUsedStep = step;
+    return Promise.resolve(true);
+  }
+
+  // Misma regla que la función SQL consume_totp_step.
+  consumeTotpStep(userId: string, step: number) {
+    const factor = this.mfaFactors.get(userId);
+    if (
+      !factor || factor.confirmedAt === null ||
+      (factor.lastUsedStep !== null && factor.lastUsedStep >= step)
+    ) {
+      return Promise.resolve(false);
+    }
+    factor.lastUsedStep = step;
+    return Promise.resolve(true);
+  }
+
+  createStepUpChallenge(challenge: Omit<StoredChallenge, "consumedAt">) {
+    this.challenges.push({ ...challenge, consumedAt: null });
+    return Promise.resolve();
+  }
+
+  findActiveStepUpChallenge(tokenHash: string, userId: string, now: Date) {
+    const found = this.challenges.find((c) =>
+      c.tokenHash === tokenHash && c.userId === userId &&
+      c.consumedAt === null && Date.parse(c.expiresAt) > now.getTime()
+    );
+    return Promise.resolve(found ? { action: found.action } : null);
+  }
+
+  // Misma regla que la función SQL consume_step_up_challenge.
+  consumeStepUpChallenge(tokenHash: string) {
+    const found = this.challenges.find((c) =>
+      c.tokenHash === tokenHash && c.consumedAt === null &&
+      Date.parse(c.expiresAt) > this.now().getTime()
+    );
+    if (!found) return Promise.resolve(null);
+    found.consumedAt = this.now().toISOString();
+    return Promise.resolve({ userId: found.userId, action: found.action });
+  }
+
+  deleteUser(userId: string) {
+    this.deletedUsers.push(userId);
+    this.profiles.delete(userId);
+    this.mfaFactors.delete(userId);
+    this.views = this.views.filter((v) => v.userId !== userId);
     return Promise.resolve();
   }
 }
@@ -106,13 +219,26 @@ export function makeOpportunityRecord(
   };
 }
 
+/** Reloj manipulable para simular el paso del tiempo en las pruebas. */
+export class TestClock {
+  constructor(public current: Date = NOW) {}
+  now = () => this.current;
+  advanceSeconds(seconds: number) {
+    this.current = new Date(this.current.getTime() + seconds * 1000);
+  }
+  unixSeconds() {
+    return Math.floor(this.current.getTime() / 1000);
+  }
+}
+
 /** Crea la app con dobles de prueba; cada prueba puede reemplazar alguno. */
 export function createTestApp(overrides: Partial<AppDependencies> = {}) {
-  const repository = new InMemoryRepository();
+  const now = overrides.now ?? (() => NOW);
   const deps: AppDependencies = {
     auth: new FakeAuth(),
-    repository,
-    now: () => NOW,
+    repository: new InMemoryRepository(now),
+    now,
+    secrets: TEST_SECRETS,
     ...overrides,
   };
   return {
