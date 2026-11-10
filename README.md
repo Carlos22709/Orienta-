@@ -110,6 +110,19 @@ npx supabase stop
 
 La primera vez, `supabase start` descarga varias imágenes de Docker y puede tardar varios minutos. Sin excluir `edge-runtime`, `supabase start` también sirve la función `api` en `http://127.0.0.1:54321/functions/v1/api`, con las variables de Supabase ya inyectadas. Para la app en el teléfono, usa `EXPO_PUBLIC_API_URL=http://<IP-del-computador>:54321/functions/v1/api`.
 
+### Proyecto en la nube
+
+Con la Supabase CLI 3.x, los comandos de base de datos apuntan por defecto al Supabase **local**. Para el proyecto en la nube hay que agregar `--remote`:
+
+```bash
+npx supabase link --project-ref <ref>       # una sola vez
+npx supabase migration list --remote        # migraciones locales vs. aplicadas en la nube
+npx supabase db push --remote               # aplica las migraciones pendientes
+npx supabase functions deploy api           # despliega la API
+```
+
+`db push` no carga `supabase/seed.sql`: hay que ejecutarlo en el SQL Editor del dashboard.
+
 `npm run api:serve` sirve la función sin Supabase: solo responde `/api/health`, y las demás rutas devuelven 500 por falta de configuración.
 
 ## Accesibilidad
