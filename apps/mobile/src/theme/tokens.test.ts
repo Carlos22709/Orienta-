@@ -1,5 +1,3 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { palettes } from './tokens';
 
 /**
@@ -34,86 +32,58 @@ function contrastRatio(hex1: string, hex2: string): number {
   return (brighter + 0.05) / (darker + 0.05);
 }
 
-test('Tema claro: texto cumple contraste WCAG AA (>= 4.5:1)', () => {
-  const { background, surface, text, textMuted, primary, success, warning, danger } =
-    palettes.light;
+describe('Tokens de color y accesibilidad (WCAG 2.1 AA - compromiso V1)', () => {
+  it('Tema claro: texto cumple contraste WCAG AA (>= 4.5:1)', () => {
+    const { background, surface, text, textMuted, primary, success, warning, danger } =
+      palettes.light;
 
-  const textColors = [
-    { name: 'text', hex: text },
-    { name: 'textMuted', hex: textMuted },
-    { name: 'primary', hex: primary },
-    { name: 'success', hex: success },
-    { name: 'warning', hex: warning },
-    { name: 'danger', hex: danger },
-  ];
+    const textColors = [
+      { name: 'text', hex: text },
+      { name: 'textMuted', hex: textMuted },
+      { name: 'primary', hex: primary },
+      { name: 'success', hex: success },
+      { name: 'warning', hex: warning },
+      { name: 'danger', hex: danger },
+    ];
 
-  for (const { name, hex } of textColors) {
-    const ratioOnBg = contrastRatio(hex, background);
-    const ratioOnSurface = contrastRatio(hex, surface);
+    for (const { hex } of textColors) {
+      expect(contrastRatio(hex, background)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(hex, surface)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 
-    assert.ok(
-      ratioOnBg >= 4.5,
-      `Tema claro: ${name} (${hex}) sobre background debe ser >= 4.5:1, obtenido ${ratioOnBg.toFixed(2)}:1`,
-    );
-    assert.ok(
-      ratioOnSurface >= 4.5,
-      `Tema claro: ${name} (${hex}) sobre surface debe ser >= 4.5:1, obtenido ${ratioOnSurface.toFixed(2)}:1`,
-    );
-  }
-});
+  it('Tema oscuro: texto cumple contraste WCAG AA (>= 4.5:1)', () => {
+    const { background, surface, text, textMuted, primary, success, warning, danger } =
+      palettes.dark;
 
-test('Tema oscuro: texto cumple contraste WCAG AA (>= 4.5:1)', () => {
-  const { background, surface, text, textMuted, primary, success, warning, danger } =
-    palettes.dark;
+    const textColors = [
+      { name: 'text', hex: text },
+      { name: 'textMuted', hex: textMuted },
+      { name: 'primary', hex: primary },
+      { name: 'success', hex: success },
+      { name: 'warning', hex: warning },
+      { name: 'danger', hex: danger },
+    ];
 
-  const textColors = [
-    { name: 'text', hex: text },
-    { name: 'textMuted', hex: textMuted },
-    { name: 'primary', hex: primary },
-    { name: 'success', hex: success },
-    { name: 'warning', hex: warning },
-    { name: 'danger', hex: danger },
-  ];
+    for (const { hex } of textColors) {
+      expect(contrastRatio(hex, background)).toBeGreaterThanOrEqual(4.5);
+      expect(contrastRatio(hex, surface)).toBeGreaterThanOrEqual(4.5);
+    }
+  });
 
-  for (const { name, hex } of textColors) {
-    const ratioOnBg = contrastRatio(hex, background);
-    const ratioOnSurface = contrastRatio(hex, surface);
+  it('Texto onPrimary cumple contraste WCAG AA sobre primary (>= 4.5:1)', () => {
+    const lightRatio = contrastRatio(palettes.light.onPrimary, palettes.light.primary);
+    expect(lightRatio).toBeGreaterThanOrEqual(4.5);
 
-    assert.ok(
-      ratioOnBg >= 4.5,
-      `Tema oscuro: ${name} (${hex}) sobre background debe ser >= 4.5:1, obtenido ${ratioOnBg.toFixed(2)}:1`,
-    );
-    assert.ok(
-      ratioOnSurface >= 4.5,
-      `Tema oscuro: ${name} (${hex}) sobre surface debe ser >= 4.5:1, obtenido ${ratioOnSurface.toFixed(2)}:1`,
-    );
-  }
-});
+    const darkRatio = contrastRatio(palettes.dark.onPrimary, palettes.dark.primary);
+    expect(darkRatio).toBeGreaterThanOrEqual(4.5);
+  });
 
-test('Texto onPrimary cumple contraste WCAG AA sobre primary (>= 4.5:1)', () => {
-  const lightRatio = contrastRatio(palettes.light.onPrimary, palettes.light.primary);
-  assert.ok(
-    lightRatio >= 4.5,
-    `Tema claro: onPrimary sobre primary debe ser >= 4.5:1, obtenido ${lightRatio.toFixed(2)}:1`,
-  );
+  it('Bordes y componentes gráficos cumplen contraste mínimo (>= 3.0:1)', () => {
+    const lightBorderBg = contrastRatio(palettes.light.border, palettes.light.background);
+    const darkBorderBg = contrastRatio(palettes.dark.border, palettes.dark.background);
 
-  const darkRatio = contrastRatio(palettes.dark.onPrimary, palettes.dark.primary);
-  assert.ok(
-    darkRatio >= 4.5,
-    `Tema oscuro: onPrimary sobre primary debe ser >= 4.5:1, obtenido ${darkRatio.toFixed(2)}:1`,
-  );
-});
-
-test('Bordes y componentes gráficos cumplen contraste mínimo (>= 3.0:1)', () => {
-  const lightBorderBg = contrastRatio(palettes.light.border, palettes.light.background);
-  const darkBorderBg = contrastRatio(palettes.dark.border, palettes.dark.background);
-
-  assert.ok(
-    lightBorderBg >= 3.0,
-    `Tema claro: border sobre background debe ser >= 3.0:1, obtenido ${lightBorderBg.toFixed(2)}:1`,
-  );
-  assert.ok(
-    darkBorderBg >= 3.0,
-    `Tema oscuro: border sobre background debe ser >= 3.0:1, obtenido ${darkBorderBg.toFixed(2)}:1`,
-  );
+    expect(lightBorderBg).toBeGreaterThanOrEqual(3.0);
+    expect(darkBorderBg).toBeGreaterThanOrEqual(3.0);
+  });
 });

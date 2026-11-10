@@ -1,28 +1,28 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
 import { isValidHttpUrl } from './url';
 
-test('isValidHttpUrl acepta direcciones HTTPS válidas', () => {
-  assert.equal(isValidHttpUrl('https://sena.edu.co'), true);
-  assert.equal(isValidHttpUrl('https://talentotech.gov.co/ruta-ia'), true);
-  assert.equal(isValidHttpUrl('https://bogota.gov.co/empleo?id=123'), true);
-});
+describe('isValidHttpUrl (apertura segura de enlaces oficiales)', () => {
+  it('acepta direcciones HTTPS válidas', () => {
+    expect(isValidHttpUrl('https://sena.edu.co')).toBe(true);
+    expect(isValidHttpUrl('https://talentotech.gov.co/ruta-ia')).toBe(true);
+    expect(isValidHttpUrl('https://bogota.gov.co/empleo?id=123')).toBe(true);
+  });
 
-test('isValidHttpUrl acepta direcciones HTTP válidas', () => {
-  assert.equal(isValidHttpUrl('http://example.org'), true);
-});
+  it('acepta direcciones HTTP válidas', () => {
+    expect(isValidHttpUrl('http://example.org')).toBe(true);
+  });
 
-test('isValidHttpUrl rechaza esquemas peligrosos o no permitidos', () => {
-  assert.equal(isValidHttpUrl('javascript:alert(1)'), false);
-  assert.equal(isValidHttpUrl('data:text/html,test'), false);
-  assert.equal(isValidHttpUrl('file:///etc/passwd'), false);
-  assert.equal(isValidHttpUrl('tel:+573001234567'), false);
-});
+  it('rechaza esquemas peligrosos o no permitidos', () => {
+    expect(isValidHttpUrl('javascript:alert(1)')).toBe(false);
+    expect(isValidHttpUrl('data:text/html,test')).toBe(false);
+    expect(isValidHttpUrl('file:///etc/passwd')).toBe(false);
+    expect(isValidHttpUrl('tel:+573001234567')).toBe(false);
+  });
 
-test('isValidHttpUrl rechaza cadenas vacías, nulos o valores indefinidos', () => {
-  assert.equal(isValidHttpUrl(''), false);
-  assert.equal(isValidHttpUrl('   '), false);
-  assert.equal(isValidHttpUrl(null), false);
-  assert.equal(isValidHttpUrl(undefined), false);
-  assert.equal(isValidHttpUrl('no-es-una-url'), false);
+  it('rechaza cadenas vacías, nulos o valores indefinidos', () => {
+    expect(isValidHttpUrl('')).toBe(false);
+    expect(isValidHttpUrl('   ')).toBe(false);
+    expect(isValidHttpUrl(null)).toBe(false);
+    expect(isValidHttpUrl(undefined)).toBe(false);
+    expect(isValidHttpUrl('no-es-una-url')).toBe(false);
+  });
 });
