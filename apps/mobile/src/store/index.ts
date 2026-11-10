@@ -1,22 +1,25 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { api } from './api';
+import { authSlice } from './authSlice';
 
 /**
  * Store global de Orienta+ (decisión 0003).
  *
- * Hoy solo contiene la caché de RTK Query. Los slices authSlice y
- * stepUpSlice se agregan con el módulo de autenticación.
+ * - auth: sesión en memoria (access_token, persona, estado).
+ * - api: caché de RTK Query.
+ *
+ * El stepUpSlice se agrega con las pantallas de verificación en dos pasos.
  */
+const rootReducer = combineSlices(authSlice, api);
+
 export const store = configureStore({
-  reducer: {
-    [api.reducerPath]: api.reducer,
-  },
+  reducer: rootReducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(api.middleware),
 });
 
-export type RootState = ReturnType<typeof store.getState>;
+export type RootState = ReturnType<typeof rootReducer>;
 export type AppDispatch = typeof store.dispatch;
 
 // Hooks tipados para usar en los componentes en lugar de useDispatch/useSelector.
