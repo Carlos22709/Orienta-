@@ -126,27 +126,63 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Acceso directo al flujo de recomendaciones (entregable de Juan) */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Ver recomendaciones de oportunidades"
-          accessibilityHint="Abre la lista de convocatorias recomendadas según el perfil"
-          onPress={() => router.push('/recommendations')}
-          style={({ pressed }) => [
-            styles.button,
-            { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-          ]}
-        >
-          <Text
-            style={[
-              typography.body,
-              styles.buttonLabel,
-              { color: colors.onPrimary },
+        {/* Flujo completo de navegación: Bienvenida -> Perfil -> Recomendaciones */}
+        <View style={styles.navigationSection}>
+          <Text style={[typography.cardTitle, { color: colors.text, marginBottom: spacing.sm }]}>
+            Recorrido del usuario
+          </Text>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Iniciar recorrido: Bienvenida y consentimiento"
+            accessibilityHint="Explica qué hace Orienta+ y solicita consentimiento informado"
+            onPress={() => router.push('/welcome')}
+            style={({ pressed }) => [
+              styles.navButton,
+              { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
             ]}
           >
-            Ver oportunidades recomendadas →
-          </Text>
-        </Pressable>
+            <Text style={[typography.body, { color: colors.primary, fontWeight: '600' }]}>
+              1. Bienvenida y consentimiento →
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Configurar o editar perfil"
+            accessibilityHint="Captura municipio, educación, situación e intereses"
+            onPress={() => router.push('/profile')}
+            style={({ pressed }) => [
+              styles.navButton,
+              { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Text style={[typography.body, { color: colors.primary, fontWeight: '600' }]}>
+              2. Captura y edición de perfil →
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ver recomendaciones de oportunidades"
+            accessibilityHint="Abre la lista de 4 o 5 convocatorias recomendadas según el perfil"
+            onPress={() => router.push('/recommendations')}
+            style={({ pressed }) => [
+              styles.button,
+              { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
+            ]}
+          >
+            <Text
+              style={[
+                typography.body,
+                styles.buttonLabel,
+                { color: colors.onPrimary },
+              ]}
+            >
+              3. Ver oportunidades recomendadas (4-5) →
+            </Text>
+          </Pressable>
+        </View>
 
         {showRetry && (
           <Pressable
@@ -183,6 +219,17 @@ const styles = StyleSheet.create({
   content: {
     padding: spacing.lg,
     gap: spacing.lg,
+  },
+  navigationSection: {
+    gap: spacing.sm,
+  },
+  navButton: {
+    minHeight: minTouchTarget,
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
+    justifyContent: 'center',
   },
   statusCard: {
     borderWidth: 1,
