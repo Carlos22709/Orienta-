@@ -109,7 +109,65 @@ check "la vista quedó registrada" 1 \
 check "un id inexistente responde 404" 404 \
   "$(status_of "$FN/opportunities/00000000-0000-0000-0000-000000000000" "${AUTH[@]}")"
 
-echo "6. La clave pública no puede leer tablas directamente"
+echo "6. Segundo factor (TOTP) y step-up"
+# Genera el código TOTP con el crypto de Node: es una implementación
+# independiente de supabase/functions/_shared/security/totp.ts.
+totp_now() {
+  node -e "
+    const c = require('crypto');
+    const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = 0, value = 0; const out = [];
+    for (const ch of process.argv[1]) {
+      value = (value << 5) | A.indexOf(ch); bits += 5;
+      if (bits >= 8) { out.push((value >>> (bits - 8)) & 255); bits -= 8; value &= (1 << bits) - 1; }
+    }
+    const msg = Buffer.alloc(8); msg.writeBigUInt64BE(BigInt(Math.floor(Date.now() / 30000)));
+    const h = c.createHmac('sha1', Buffer.from(out)).update(msg).digest();
+    const o = h[19] & 15;
+    const n = (((h[o] & 127) << 24) | (h[o + 1] << 16) | (h[o + 2] << 8) | h[o + 3]) % 1e6;
+    console.log(String(n).padStart(6, '0'));" "$1"
+}
+wait_next_window() { sleep $((31 - $(date +%s) % 30)); }
+post_json() { curl -s -X POST "$FN$1" "${AUTH[@]}" -H "Content-Type: application/json" -d "$2"; }
+
+check "exportar sin 2FA activo responde 403" 403 "$(status_of "$FN/me/data-export" "${AUTH[@]}")"
+SEED=$(post_json /mfa/enroll '{}' | json_field 'body.secret')
+check "POST /mfa/enroll entrega una semilla Base32 de 32 caracteres" 32 "${#SEED}"
+check "el secreto se guarda cifrado (no aparece en la base)" 0 \
+  "$(psql_local "select count(*) from public.mfa_factors where user_id = '$USER_ID' and encode(secret_ciphertext, 'escape') like '%$SEED%';")"
+check "confirmar con el código de Node activa el 2FA" true \
+  "$(post_json /mfa/enroll/confirm "{\"code\":\"$(totp_now "$SEED")\"}" | json_field 'body.enrolled')"
+
+echo "   (esperando la siguiente ventana de 30 s para no repetir el código)"
+wait_next_window
+STEP_UP=$(curl -s "$FN/me/data-export" "${AUTH[@]}")
+check "exportar sin token elevado responde mfa_required" mfa_required \
+  "$(echo "$STEP_UP" | json_field 'body.error')"
+STEP_UP_TOKEN=$(echo "$STEP_UP" | json_field 'body.stepUpToken')
+check "la base guarda el hash del step_up_token, no el token" 0 \
+  "$(psql_local "select count(*) from public.step_up_challenges where token_hash = '$STEP_UP_TOKEN';")"
+CODE=$(totp_now "$SEED")
+ELEVATED=$(post_json /mfa/verify "{\"stepUpToken\":\"$STEP_UP_TOKEN\",\"code\":\"$CODE\"}" | json_field 'body.elevatedToken')
+check "POST /mfa/verify entrega un token elevado" yes "$([[ ${#ELEVATED} -gt 20 ]] && echo yes || echo no)"
+
+REPLAY_TOKEN=$(curl -s "$FN/me/data-export" "${AUTH[@]}" | json_field 'body.stepUpToken')
+check "reusar el mismo código responde 409 (anti-replay)" 409 \
+  "$(curl -s -o /dev/null -w '%{http_code}' -X POST "$FN/mfa/verify" "${AUTH[@]}" \
+    -H "Content-Type: application/json" -d "{\"stepUpToken\":\"$REPLAY_TOKEN\",\"code\":\"$CODE\"}")"
+
+EXPORT=$(curl -s "$FN/me/data-export" "${AUTH[@]}" -H "X-Elevated-Token: $ELEVATED")
+check "con token elevado la exportación trae el perfil" 2007-03-15 \
+  "$(echo "$EXPORT" | json_field 'body.profile.birthDate')"
+check "la exportación no incluye la semilla TOTP" no \
+  "$(echo "$EXPORT" | grep -q "$SEED" && echo yes || echo no)"
+
+check "DELETE /me con token elevado responde 204" 204 \
+  "$(status_of -X DELETE "$FN/me" "${AUTH[@]}" -H "X-Elevated-Token: $ELEVATED")"
+check "la cuenta y sus datos se borraron en cascada" 0 \
+  "$(psql_local "select (select count(*) from auth.users where id = '$USER_ID') + (select count(*) from public.profiles where user_id = '$USER_ID') + (select count(*) from public.mfa_factors where user_id = '$USER_ID');")"
+USER_ID="" # ya no hay usuario que limpiar
+
+echo "7. La clave pública no puede leer tablas directamente"
 check "REST /opportunities con la clave pública responde 401" 401 \
   "$(status_of "$API_URL/rest/v1/opportunities?select=id" -H "apikey: $PUBLIC_KEY" -H "Authorization: Bearer $PUBLIC_KEY")"
 
