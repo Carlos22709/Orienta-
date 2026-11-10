@@ -19,7 +19,7 @@ El equipo quiere usar Supabase, pero con los endpoints y la lógica de negocio e
 | Endpoints | **Supabase Edge Functions** en TypeScript (Deno). Una sola función `api` con un router Hono que agrupa todas las rutas. |
 | Lógica de dominio | Módulos puros en `supabase/functions/_shared/domain/` (vigencia, elegibilidad, ranking, TOTP), sin acceso a red ni base de datos, para probarlos de forma aislada. |
 | Base de datos | Postgres de Supabase. Esquema versionado en `supabase/migrations/`. |
-| Acceso a datos | La app **solo** llama a los endpoints propios y a Supabase Auth. Las tablas de negocio tienen RLS activado y ninguna política de lectura o escritura para `anon` o `authenticated`; la función usa la clave `service_role`, guardada como secreto de Supabase. |
+| Acceso a datos | La app **solo** llama a los endpoints propios y a Supabase Auth. Las tablas de negocio tienen RLS activado y ninguna política de lectura o escritura para `anon` o `authenticated`; la función usa la clave *secret* de Supabase (sucesora de `service_role`), guardada como secreto. |
 | Autenticación | Supabase Auth con Google (ver [0002](0002-autenticacion-y-step-up.md)). |
 | Validación | Zod en los límites: cuerpo de peticiones, respuestas de la API en la app y variables de entorno. |
 | Pruebas | Backend: `deno test`. App: Jest (`jest-expo`) + React Native Testing Library. Recorrido completo: Maestro (opcional, por confirmar). |
@@ -66,10 +66,13 @@ docs/
 - Las Edge Functions corren en **Deno**: los imports usan especificadores `npm:` o URLs y las pruebas usan `deno test`. El equipo debe aprender esas diferencias con Node.
 - Las Edge Functions **no conservan estado entre ejecuciones**. Todo estado de seguridad (anti-replay de TOTP, retos de step-up) se guarda en Postgres, no en memoria.
 - Con Expo Go solo se pueden usar módulos incluidos en Expo Go; no se pueden agregar librerías con código nativo propio.
-- La clave `service_role` y los secretos del backend nunca van en la app ni en Git. La app solo recibe la URL del proyecto y la clave pública.
+- La clave *secret* de Supabase y los secretos del backend nunca van en la app ni en Git. La app solo recibe la URL del proyecto y la clave *publishable*.
 - Los comandos de instalación, ejecución y pruebas se documentarán en `README.md` cuando se verifiquen; no se registran antes.
 
 ## Por validar
 
 - Que la versión de Expo Go instalada en los teléfonos del equipo sea compatible con SDK 58.
-- Que la función `api` pueda configurarse con verificación de JWT desactivada en la plataforma (`verify_jwt = false`) para exponer `/health` y `/catalog` públicamente, validando el token dentro del propio código para las demás rutas.
+- Desplegar la función en Supabase y comprobar que `/health` responde sin encabezados de autenticación. En local ya está verificado:
+  - la CLI 3.1.0 genera `[functions.api]` con `verify_jwt = false`;
+  - `GET /api/health` responde 200 al servir la función con `npm run api:serve`.
+  - La validación del token para las demás rutas se hará dentro del propio código.

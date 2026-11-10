@@ -47,7 +47,13 @@ Registra la ruta exacta del componente y la evidencia de validación para alimen
 
 ## Comandos
 
-Todavía no existe una aplicación ni comandos de instalación, ejecución o pruebas. No inventes comandos. Cuando se inicialice el stack, documenta los comandos verificados en `README.md` y actualiza esta sección si aportan orientación durable.
+Los comandos verificados están en `README.md`; no inventes otros. Resumen:
+
+- Backend (desde la raíz): `npm install`, `npm run api:test`, `npm run api:check`, `npm run api:lint`, `npm run api:serve`.
+- App (desde `apps/mobile`): `npm install`, `npm run typecheck`, `npx expo-doctor`, `npx expo start`.
+- Instala dependencias de la app con `npx expo install <paquete>` para respetar las versiones del SDK 58. No uses `npm audit fix --force` ni `--legacy-peer-deps`.
+
+Antes de declarar terminada una tarea, ejecuta las verificaciones que correspondan y registra las que no pudieron ejecutarse.
 
 ## Archivos de instrucciones compatibles
 

@@ -30,13 +30,13 @@ flowchart LR
   RTKQ -->|"HTTPS + Bearer JWT"| API
   RTKQ -->|"refresh_token"| GoTrue
   API --> Domain
-  API -->|"service_role"| DB
+  API -->|"clave secret"| DB
   UI -->|"expo-web-browser"| Official
 ```
 
 ## 2. Modelo de datos (inicial)
 
-`auth.users` es administrada por Supabase Auth. Las demás tablas están en el esquema `public`, con RLS activado y **sin políticas** para `anon` ni `authenticated`; solo la Edge Function accede, con `service_role`.
+`auth.users` es administrada por Supabase Auth. Las demás tablas están en el esquema `public`, con RLS activado y **sin políticas** para `anon` ni `authenticated`; solo la Edge Function accede, con la clave *secret* de Supabase.
 
 ```mermaid
 erDiagram
@@ -220,10 +220,11 @@ sequenceDiagram
 
 | Variable | Dónde | Nota |
 |---|---|---|
-| `EXPO_PUBLIC_SUPABASE_URL` | App (`apps/mobile/.env`) | Pública. |
-| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | App | Pública. No da acceso a tablas porque RLS no tiene políticas públicas. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Secreto de la Edge Function | Nunca en la app ni en Git. |
+| `EXPO_PUBLIC_API_URL` | App (`apps/mobile/.env`) | Pública. URL base de la función `api`. **Ya existe** en `apps/mobile/.env.example`. |
+| `EXPO_PUBLIC_SUPABASE_URL` | App | Pública. Necesaria para Supabase Auth. |
+| `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | App | Clave *publishable* de Supabase. Es pública y no da acceso a tablas porque RLS no tiene políticas para `anon` ni `authenticated`. |
+| Clave *secret* de Supabase | Secreto de la Edge Function | Reemplaza a la antigua `service_role`. Nunca en la app ni en Git. |
 | `TOTP_ENCRYPTION_KEY` | Secreto de la Edge Function | Clave AES-GCM de 256 bits. |
 | `ELEVATED_TOKEN_SECRET` | Secreto de la Edge Function | Firma HS256 del `elevated_token`. |
 
-Los nombres definitivos se registran en `.env.example` al inicializar el proyecto.
+La Supabase CLI 3.x genera las funciones con el modelo de claves *publishable* y *secret* (ver la plantilla en `supabase/functions/`). Los nombres de las variables que faltan se registran en los `.env.example` cuando se implemente cada módulo.

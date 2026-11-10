@@ -183,7 +183,9 @@ Por la importancia de la defensa individual, el código debe favorecer comprensi
 
 Estado al 2026-11-09:
 
-- Repositorio en GitHub (`Carlos22709/Orienta-`). La app es todavía el scaffold de Expo SDK 58 en `apps/mobile/`, ya con nombre Orienta+ y tema automático, pero sin pantallas, navegación ni dependencias del stack acordado. `supabase/` aún no existe.
+- Repositorio en GitHub (`Carlos22709/Orienta-`).
+- `apps/mobile/` tiene Expo Router, store de Redux con RTK Query, tokens visuales y una pantalla inicial provisional que consulta `GET /api/health` con estados de carga, éxito y error accesibles. Todavía no tiene flujo de negocio, autenticación ni pruebas automatizadas de UI.
+- `supabase/` tiene la función `api` (Hono) con `/health`, el formato de errores y 3 pruebas en Deno. No hay migraciones ni datos todavía.
 - Stack, autenticación, estado del cliente, alcance del MVP, reglas de recomendación, identidad visual, curación de oportunidades y flujo de Git registrados en `docs/decisions/` (0001–0008). Están aprobados por Carlos (0005–0008 por delegación al agente) y pendientes de ratificación por Laura y Juan.
 - Diseño inicial de backend, modelo de datos y endpoints en `docs/architecture/diseno-backend.md`. Todavía no hay código que lo implemente.
 - Matriz de accesibilidad con los compromisos de la Fase 2 como línea base en `docs/accessibility/matriz-trazabilidad.md`. Ningún compromiso está implementado todavía.
