@@ -33,7 +33,9 @@ export default function WelcomeScreen() {
 
   const handleContinue = () => {
     if (!consented) return;
-    router.push('/profile');
+    // El perfil envía la aceptación al servidor junto con la versión vigente
+    // del texto de consentimiento (GET /api/catalog).
+    router.push({ pathname: '/profile', params: { consent: 'accepted' } });
   };
 
   return (

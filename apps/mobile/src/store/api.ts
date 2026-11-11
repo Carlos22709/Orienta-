@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { refreshStoredSession } from '../auth/session';
 import { sessionDeps } from '../auth/sessionDeps';
 import { env } from '../config/env';
+import type { ProfileUpdate } from '../profile/profileForm';
 import { createBaseQueryWithReauth } from './baseQueryWithReauth';
 
 /** Contrato de GET /api/health (ver docs/architecture/diseno-backend.md). */
@@ -66,6 +67,47 @@ export const opportunityDetailResponseSchema = z.object({
 });
 export type OpportunityDetailResponse = z.infer<typeof opportunityDetailResponseSchema>;
 
+/** Opción { value, label } del catálogo, con etiqueta en lenguaje claro. */
+const catalogOptionSchema = z.object({ value: z.string(), label: z.string() });
+export type CatalogOption = z.infer<typeof catalogOptionSchema>;
+
+/** Contrato de GET /api/catalog (opciones del formulario de perfil). */
+export const catalogResponseSchema = z.object({
+  municipalities: z.array(
+    z.object({
+      code: z.string(),
+      name: z.string(),
+      departmentName: z.string().optional(),
+    }),
+  ),
+  categories: z.array(catalogOptionSchema),
+  educationLevels: z.array(catalogOptionSchema),
+  experienceLevels: z.array(catalogOptionSchema),
+  situations: z.array(catalogOptionSchema),
+  availabilities: z.array(catalogOptionSchema),
+  consentVersion: z.string(),
+});
+export type CatalogResponse = z.infer<typeof catalogResponseSchema>;
+
+/** Contrato de GET y PUT /api/me/profile. profile es null si aún no existe. */
+export const profileResponseSchema = z.object({
+  profile: z
+    .object({
+      birthDate: z.string().nullable(),
+      municipalityCode: z.string().nullable(),
+      educationLevel: z.string().nullable(),
+      experienceLevel: z.string().nullable(),
+      currentSituation: z.string().nullable(),
+      interests: z.array(z.string()),
+      availability: z.string().nullable(),
+      consentVersion: z.string(),
+      consentedAt: z.string(),
+    })
+    .nullable(),
+  missingFields: z.array(z.string()),
+});
+export type ProfileResponse = z.infer<typeof profileResponseSchema>;
+
 /** Tiempo máximo de espera por petición antes de mostrar el estado de error. */
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -78,7 +120,7 @@ const REQUEST_TIMEOUT_MS = 10_000;
  */
 export const api = createApi({
   reducerPath: 'api',
-  tagTypes: ['Health', 'Recommendations', 'Opportunity'],
+  tagTypes: ['Health', 'Recommendations', 'Opportunity', 'Profile'],
   baseQuery: createBaseQueryWithReauth({
     baseUrl: env.apiUrl ?? '',
     timeout: REQUEST_TIMEOUT_MS,
@@ -102,6 +144,22 @@ export const api = createApi({
         opportunityDetailResponseSchema.parse(response),
       providesTags: (_result, _error, id) => [{ type: 'Opportunity', id }],
     }),
+    getCatalog: build.query<CatalogResponse, void>({
+      query: () => 'catalog',
+      transformResponse: (response: unknown) => catalogResponseSchema.parse(response),
+    }),
+    getProfile: build.query<ProfileResponse, void>({
+      query: () => 'me/profile',
+      transformResponse: (response: unknown) => profileResponseSchema.parse(response),
+      providesTags: ['Profile'],
+    }),
+    // Guarda uno o varios pasos. Al cambiar el perfil, las recomendaciones
+    // guardadas en caché dejan de ser válidas y se vuelven a pedir.
+    updateProfile: build.mutation<ProfileResponse, ProfileUpdate>({
+      query: (body) => ({ url: 'me/profile', method: 'PUT', body }),
+      transformResponse: (response: unknown) => profileResponseSchema.parse(response),
+      invalidatesTags: ['Profile', 'Recommendations'],
+    }),
   }),
 });
 
@@ -109,4 +167,7 @@ export const {
   useGetHealthQuery,
   useGetRecommendationsQuery,
   useGetOpportunityByIdQuery,
+  useGetCatalogQuery,
+  useGetProfileQuery,
+  useUpdateProfileMutation,
 } = api;
