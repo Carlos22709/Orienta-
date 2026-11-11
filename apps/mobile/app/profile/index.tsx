@@ -1,112 +1,190 @@
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   AccessibilityInfo,
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { OptionGroup } from '../../src/components/OptionGroup';
+import { ErrorState } from '../../src/components/states/ErrorState';
+import { LoadingState } from '../../src/components/states/LoadingState';
+import {
+  describeFields,
+  EMPTY_FORM,
+  formFromProfile,
+  readSaveProfileError,
+  toggleInterest,
+  toProfileUpdate,
+  validateProfileForm,
+  type ProfileField,
+  type ProfileFormState,
+} from '../../src/profile/profileForm';
+import { useAppSelector } from '../../src/store';
+import {
+  useGetCatalogQuery,
+  useGetProfileQuery,
+  useUpdateProfileMutation,
+} from '../../src/store/api';
+import { selectAuthStatus } from '../../src/store/authSlice';
 import { minTouchTarget, spacing, typography } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/useTheme';
 
-const MUNICIPALITIES = [
-  { code: '11001', name: 'Bogotá, D.C.' },
-  { code: '25175', name: 'Chía' },
-  { code: '25899', name: 'Zipaquirá' },
-  { code: '25126', name: 'Cajicá' },
-  { code: '25214', name: 'Cota' },
-  { code: '25817', name: 'Tocancipá' },
-];
+type FieldErrors = Partial<Record<ProfileField, string>>;
 
-const EDUCATION_OPTIONS = [
-  { value: 'secondary', label: 'Bachiller' },
-  { value: 'technical', label: 'Técnico' },
-  { value: 'technologist', label: 'Tecnólogo' },
-  { value: 'university', label: 'Universitario' },
-];
-
-const EXPERIENCE_OPTIONS = [
-  { value: 'none', label: 'Sin experiencia previa' },
-  { value: 'lt_1y', label: 'Menos de 1 año' },
-  { value: '1_3y', label: 'Entre 1 y 3 años' },
-  { value: 'gt_3y', label: 'Más de 3 años' },
-];
-
-const SITUATION_OPTIONS = [
-  { value: 'neither', label: 'No estudio ni trabajo actualmente' },
-  { value: 'studying', label: 'Solo estudio' },
-  { value: 'working', label: 'Solo trabajo' },
-  { value: 'both', label: 'Estudio y trabajo' },
-];
-
-const INTEREST_OPTIONS = [
-  { value: 'employment', label: 'Empleo' },
-  { value: 'training', label: 'Formación' },
-  { value: 'scholarship', label: 'Becas' },
-  { value: 'subsidy', label: 'Subsidios' },
-  { value: 'entrepreneurship', label: 'Emprendimiento' },
-];
-
-const AVAILABILITY_OPTIONS = [
-  { value: 'full_time', label: 'Tiempo completo' },
-  { value: 'part_time', label: 'Medio tiempo' },
-  { value: 'weekends', label: 'Fines de semana' },
-  { value: 'flexible', label: 'Flexible' },
-];
+/** Aviso general bajo el formulario (éxito parcial o error). */
+type Notice = { tone: 'info' | 'error' | 'consent'; text: string };
 
 /**
- * Pantalla de captura y edición de perfil.
+ * Captura y edición del perfil (entregable de Laura, PLANS.md).
  *
- * Conecta el flujo de bienvenida de Laura con la experiencia de recomendaciones de Juan.
- * Formulario accesible paso a paso con controles táctiles amplios (>= 48 dp).
+ * - Las opciones salen de GET /api/catalog: municipios en alcance y
+ *   etiquetas en lenguaje claro (Fase 2, C1).
+ * - Al abrir, se retoma el perfil guardado con GET /api/me/profile (C3).
+ * - Guardar envía PUT /api/me/profile con lo respondido. Si falta algo, el
+ *   avance queda guardado y se dice qué falta; si está completo, se pasa a
+ *   las recomendaciones.
+ * - Los errores del servidor (422) se muestran junto a cada campo y se
+ *   anuncian al lector de pantalla.
  */
 export default function ProfileScreen() {
   const { colors } = useTheme();
   const router = useRouter();
+  // La bienvenida envía consent=accepted cuando la persona marca la casilla.
+  const { consent } = useLocalSearchParams<{ consent?: string }>();
+  const consentAccepted = consent === 'accepted';
 
-  // Estado del perfil
-  const [municipality, setMunicipality] = useState('11001');
-  const [education, setEducation] = useState('secondary');
-  const [experience, setExperience] = useState('none');
-  const [situation, setSituation] = useState('neither');
-  const [selectedInterests, setSelectedInterests] = useState<string[]>([
-    'employment',
-    'training',
-  ]);
-  const [availability, setAvailability] = useState('flexible');
+  const authStatus = useAppSelector(selectAuthStatus);
+  const isSignedIn = authStatus === 'signedIn';
 
-  const toggleInterest = (value: string, label: string) => {
-    setSelectedInterests((prev) => {
-      const exists = prev.includes(value);
-      const next = exists ? prev.filter((i) => i !== value) : [...prev, value];
-      AccessibilityInfo.announceForAccessibility(
-        `${label} ${exists ? 'deseleccionado' : 'seleccionado'}`,
-      );
-      return next;
-    });
-  };
+  const catalog = useGetCatalogQuery();
+  const savedProfile = useGetProfileQuery(undefined, { skip: !isSignedIn });
+  const [updateProfile, { isLoading: isSaving }] = useUpdateProfileMutation();
 
-  const handleSaveAndRecommend = () => {
-    router.push('/recommendations');
-  };
+  const [form, setForm] = useState<ProfileFormState>(EMPTY_FORM);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [notice, setNotice] = useState<Notice | null>(null);
+
+  // Retoma el perfil guardado una sola vez, para no borrar lo que la
+  // persona esté editando si la consulta se repite.
+  const hasLoadedProfile = useRef(false);
+  useEffect(() => {
+    if (!hasLoadedProfile.current && savedProfile.data) {
+      hasLoadedProfile.current = true;
+      setForm(formFromProfile(savedProfile.data.profile));
+    }
+  }, [savedProfile.data]);
+
+  /** Cambia un campo y borra su error, porque la persona ya lo corrigió. */
+  function setField<K extends ProfileField>(field: K, value: ProfileFormState[K]) {
+    setForm((current) => ({ ...current, [field]: value }));
+    setFieldErrors((current) => ({ ...current, [field]: undefined }));
+  }
+
+  function announce(next: Notice) {
+    setNotice(next);
+    AccessibilityInfo.announceForAccessibility(next.text);
+  }
+
+  async function handleSave() {
+    if (!catalog.data || isSaving) return;
+
+    const localErrors = validateProfileForm(form);
+    if (Object.keys(localErrors).length > 0) {
+      setFieldErrors(localErrors);
+      announce({
+        tone: 'error',
+        text: `Revisa los datos marcados: ${describeFields(Object.keys(localErrors))}.`,
+      });
+      return;
+    }
+
+    // El consentimiento solo se envía si no está registrado con la versión vigente.
+    const storedVersion = savedProfile.data?.profile?.consentVersion ?? null;
+    const needsConsent =
+      consentAccepted && storedVersion !== catalog.data.consentVersion;
+
+    try {
+      const result = await updateProfile(
+        toProfileUpdate(form, needsConsent ? catalog.data.consentVersion : null),
+      ).unwrap();
+      setFieldErrors({});
+
+      if (result.missingFields.length === 0) {
+        AccessibilityInfo.announceForAccessibility('Perfil guardado.');
+        setNotice(null);
+        router.push('/recommendations');
+      } else {
+        announce({
+          tone: 'info',
+          text: `Guardamos tu avance. Para ver recomendaciones falta: ${describeFields(result.missingFields)}.`,
+        });
+      }
+    } catch (error) {
+      const problem = readSaveProfileError(error);
+      if (problem.kind === 'validation' && problem.fields.consent) {
+        // La versión del consentimiento cambió: hay que aceptarla de nuevo.
+        announce({ tone: 'consent', text: problem.fields.consent });
+      } else if (problem.kind === 'validation') {
+        setFieldErrors(problem.fields as FieldErrors);
+        announce({
+          tone: 'error',
+          text: `${problem.message} ${describeFields(Object.keys(problem.fields))}.`,
+        });
+      } else if (problem.kind === 'consent_required') {
+        announce({ tone: 'consent', text: problem.message });
+      } else {
+        announce({ tone: 'error', text: problem.message });
+      }
+    }
+  }
+
+  if (catalog.isLoading || authStatus === 'restoring' || savedProfile.isLoading) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <LoadingState message="Preparando tu perfil…" />
+      </SafeAreaView>
+    );
+  }
+
+  if (!catalog.data) {
+    return (
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+        <View style={styles.content}>
+          <ErrorState
+            message="No pudimos cargar las opciones del perfil. Revisa tu conexión e intenta de nuevo."
+            onRetry={catalog.refetch}
+            isRetrying={catalog.isFetching}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  const options = catalog.data;
+  const birthDateError = fieldErrors.birthDate ?? null;
 
   return (
     <SafeAreaView
       edges={['top', 'left', 'right']}
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* Encabezado */}
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+      >
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Volver a la bienvenida"
+          accessibilityLabel="Volver"
           onPress={() => router.back()}
           style={[styles.backButton, { borderColor: colors.border }]}
         >
-          <Text style={[styles.backButtonText, { color: colors.primary }]}>
+          <Text style={[typography.secondary, styles.bold, { color: colors.primary }]}>
             ← Volver
           </Text>
         </Pressable>
@@ -118,268 +196,166 @@ export default function ProfileScreen() {
           Tu perfil de orientación
         </Text>
         <Text style={[typography.body, styles.subtitle, { color: colors.textMuted }]}>
-          Los datos que ingreses se usan exclusivamente para recomendarte las opciones más pertinentes.
+          Usamos estos datos solo para recomendarte oportunidades. Puedes guardar
+          tu avance y terminar después.
         </Text>
 
-        {/* 1. Municipio */}
-        <View style={styles.section}>
-          <Text style={[typography.cardTitle, styles.sectionTitle, { color: colors.text }]}>
-            1. ¿Dónde vives actualmente?
-          </Text>
-          <View style={styles.optionsWrap}>
-            {MUNICIPALITIES.map((item) => {
-              const selected = municipality === item.code;
-              return (
-                <Pressable
-                  key={item.code}
-                  accessible={true}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`Municipio: ${item.name}`}
-                  onPress={() => {
-                    setMunicipality(item.code);
-                    AccessibilityInfo.announceForAccessibility(`Seleccionado ${item.name}`);
-                  }}
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: selected ? colors.primary : colors.surface,
-                      borderColor: selected ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: selected ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {item.name}
-                  </Text>
-                </Pressable>
-              );
-            })}
+        {!isSignedIn && (
+          <View
+            accessible
+            accessibilityRole="alert"
+            style={[styles.banner, { backgroundColor: colors.surface, borderColor: colors.warning }]}
+          >
+            <Text style={[typography.body, styles.bold, { color: colors.text }]}>
+              ⚠ Inicia sesión para guardar tu perfil.
+            </Text>
+            <Text style={[typography.secondary, { color: colors.textMuted }]}>
+              Puedes revisar las preguntas, pero tus respuestas solo se guardan
+              cuando hay una sesión activa.
+            </Text>
           </View>
+        )}
+
+        {/* 1. Fecha de nacimiento: campo de texto con formato explícito (WCAG 3.3.2). */}
+        <View style={styles.section}>
+          <Text
+            accessibilityRole="header"
+            style={[typography.cardTitle, { color: colors.text }]}
+          >
+            1. ¿Cuál es tu fecha de nacimiento?
+          </Text>
+          <Text style={[typography.secondary, { color: colors.textMuted }]}>
+            Formato año-mes-día, por ejemplo 2004-05-15.
+          </Text>
+          <TextInput
+            value={form.birthDate}
+            onChangeText={(text) => setField('birthDate', text)}
+            placeholder="AAAA-MM-DD"
+            placeholderTextColor={colors.textMuted}
+            accessibilityLabel="Fecha de nacimiento"
+            accessibilityHint="Escribe año, mes y día separados por guiones"
+            autoComplete="birthdate-full"
+            keyboardType="numbers-and-punctuation"
+            maxLength={10}
+            style={[
+              typography.body,
+              styles.input,
+              {
+                color: colors.text,
+                backgroundColor: colors.surface,
+                borderColor: birthDateError ? colors.danger : colors.border,
+                borderWidth: birthDateError ? 2 : 1,
+              },
+            ]}
+          />
+          {birthDateError && (
+            <Text
+              accessibilityLiveRegion="polite"
+              style={[typography.secondary, styles.bold, { color: colors.danger }]}
+            >
+              ⚠ {birthDateError}
+            </Text>
+          )}
         </View>
 
-        {/* 2. Nivel educativo */}
-        <View style={styles.section}>
-          <Text style={[typography.cardTitle, styles.sectionTitle, { color: colors.text }]}>
-            2. ¿Cuál es tu máximo nivel educativo?
-          </Text>
-          <View style={styles.optionsWrap}>
-            {EDUCATION_OPTIONS.map((item) => {
-              const selected = education === item.value;
-              return (
-                <Pressable
-                  key={item.value}
-                  accessible={true}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`Nivel educativo: ${item.label}`}
-                  onPress={() => {
-                    setEducation(item.value);
-                    AccessibilityInfo.announceForAccessibility(`Seleccionado ${item.label}`);
-                  }}
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: selected ? colors.primary : colors.surface,
-                      borderColor: selected ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: selected ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+        <OptionGroup
+          title="2. ¿Dónde vives?"
+          mode="single"
+          options={options.municipalities.map((m) => ({ value: m.code, label: m.name }))}
+          selected={form.municipalityCode ? [form.municipalityCode] : []}
+          onToggle={(value) => setField('municipalityCode', value)}
+          error={fieldErrors.municipalityCode}
+        />
+        <OptionGroup
+          title="3. ¿Cuál es tu nivel de estudios?"
+          mode="single"
+          options={options.educationLevels}
+          selected={form.educationLevel ? [form.educationLevel] : []}
+          onToggle={(value) => setField('educationLevel', value)}
+          error={fieldErrors.educationLevel}
+        />
+        <OptionGroup
+          title="4. ¿Cuánta experiencia laboral tienes?"
+          mode="single"
+          options={options.experienceLevels}
+          selected={form.experienceLevel ? [form.experienceLevel] : []}
+          onToggle={(value) => setField('experienceLevel', value)}
+          error={fieldErrors.experienceLevel}
+        />
+        <OptionGroup
+          title="5. ¿Qué haces actualmente?"
+          mode="single"
+          options={options.situations}
+          selected={form.currentSituation ? [form.currentSituation] : []}
+          onToggle={(value) => setField('currentSituation', value)}
+          error={fieldErrors.currentSituation}
+        />
+        <OptionGroup
+          title="6. ¿Qué tipo de oportunidades te interesan?"
+          mode="multiple"
+          options={options.categories}
+          selected={form.interests}
+          onToggle={(value) => setField('interests', toggleInterest(form.interests, value))}
+          error={fieldErrors.interests}
+        />
+        <OptionGroup
+          title="7. ¿Qué disponibilidad de tiempo tienes?"
+          mode="single"
+          options={options.availabilities}
+          selected={form.availability ? [form.availability] : []}
+          onToggle={(value) => setField('availability', value)}
+          error={fieldErrors.availability}
+        />
 
-        {/* 3. Experiencia */}
-        <View style={styles.section}>
-          <Text style={[typography.cardTitle, styles.sectionTitle, { color: colors.text }]}>
-            3. Experiencia laboral previa
-          </Text>
-          <View style={styles.optionsWrap}>
-            {EXPERIENCE_OPTIONS.map((item) => {
-              const selected = experience === item.value;
-              return (
-                <Pressable
-                  key={item.value}
-                  accessible={true}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`Experiencia: ${item.label}`}
-                  onPress={() => {
-                    setExperience(item.value);
-                    AccessibilityInfo.announceForAccessibility(`Seleccionado ${item.label}`);
-                  }}
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: selected ? colors.primary : colors.surface,
-                      borderColor: selected ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: selected ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
+        {notice && (
+          <View
+            accessible
+            accessibilityRole={notice.tone === 'info' ? 'text' : 'alert'}
+            style={[
+              styles.banner,
+              {
+                backgroundColor: colors.surface,
+                borderColor: notice.tone === 'info' ? colors.primary : colors.danger,
+              },
+            ]}
+          >
+            <Text style={[typography.body, { color: colors.text }]}>
+              {notice.tone === 'info' ? 'ℹ ' : '⚠ '}
+              {notice.text}
+            </Text>
           </View>
-        </View>
+        )}
 
-        {/* 4. Situación actual */}
-        <View style={styles.section}>
-          <Text style={[typography.cardTitle, styles.sectionTitle, { color: colors.text }]}>
-            4. Situación ocupacional actual
-          </Text>
-          <View style={styles.optionsWrap}>
-            {SITUATION_OPTIONS.map((item) => {
-              const selected = situation === item.value;
-              return (
-                <Pressable
-                  key={item.value}
-                  accessible={true}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`Situación: ${item.label}`}
-                  onPress={() => {
-                    setSituation(item.value);
-                    AccessibilityInfo.announceForAccessibility(`Seleccionado ${item.label}`);
-                  }}
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: selected ? colors.primary : colors.surface,
-                      borderColor: selected ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: selected ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
+        {notice?.tone === 'consent' && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityHint="Abre la bienvenida para aceptar el tratamiento de datos"
+            onPress={() => router.replace('/welcome')}
+            style={[styles.secondaryButton, { borderColor: colors.primary }]}
+          >
+            <Text style={[typography.body, styles.bold, { color: colors.primary }]}>
+              Ir a la bienvenida
+            </Text>
+          </Pressable>
+        )}
 
-        {/* 5. Intereses */}
-        <View style={styles.section}>
-          <Text style={[typography.cardTitle, styles.sectionTitle, { color: colors.text }]}>
-            5. ¿Qué categorías te interesan?
-          </Text>
-          <View style={styles.optionsWrap}>
-            {INTEREST_OPTIONS.map((item) => {
-              const selected = selectedInterests.includes(item.value);
-              return (
-                <Pressable
-                  key={item.value}
-                  accessible={true}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: selected }}
-                  accessibilityLabel={`Interés en ${item.label}`}
-                  onPress={() => toggleInterest(item.value, item.label)}
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: selected ? colors.primary : colors.surface,
-                      borderColor: selected ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: selected ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {selected ? '✓ ' : ''}{item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* 6. Disponibilidad */}
-        <View style={styles.section}>
-          <Text style={[typography.cardTitle, styles.sectionTitle, { color: colors.text }]}>
-            6. Disponibilidad de tiempo
-          </Text>
-          <View style={styles.optionsWrap}>
-            {AVAILABILITY_OPTIONS.map((item) => {
-              const selected = availability === item.value;
-              return (
-                <Pressable
-                  key={item.value}
-                  accessible={true}
-                  accessibilityRole="radio"
-                  accessibilityState={{ selected }}
-                  accessibilityLabel={`Disponibilidad: ${item.label}`}
-                  onPress={() => {
-                    setAvailability(item.value);
-                    AccessibilityInfo.announceForAccessibility(`Seleccionado ${item.label}`);
-                  }}
-                  style={[
-                    styles.optionButton,
-                    {
-                      backgroundColor: selected ? colors.primary : colors.surface,
-                      borderColor: selected ? colors.primary : colors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.optionText,
-                      { color: selected ? colors.onPrimary : colors.text },
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        {/* Botón Guardar y Ver Recomendaciones */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Ver recomendaciones de oportunidades personalizadas"
-          accessibilityHint="Guarda los datos del perfil y muestra las recomendaciones"
-          onPress={handleSaveAndRecommend}
+          accessibilityHint="Guarda tus respuestas y, si el perfil está completo, muestra tus recomendaciones"
+          accessibilityState={{ disabled: !isSignedIn || isSaving, busy: isSaving }}
+          disabled={!isSignedIn || isSaving}
+          onPress={handleSave}
           style={({ pressed }) => [
             styles.submitButton,
             {
               backgroundColor: colors.primary,
-              opacity: pressed ? 0.85 : 1,
+              opacity: !isSignedIn ? 0.5 : pressed || isSaving ? 0.85 : 1,
             },
           ]}
         >
-          <Text style={[typography.body, styles.submitButtonText, { color: colors.onPrimary }]}>
-            Ver mis recomendaciones (4-5 opciones) →
+          {isSaving && <ActivityIndicator color={colors.onPrimary} />}
+          <Text style={[typography.body, styles.bold, { color: colors.onPrimary }]}>
+            {isSaving ? 'Guardando…' : 'Guardar y ver recomendaciones'}
           </Text>
         </Pressable>
       </ScrollView>
@@ -399,54 +375,53 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     borderRadius: 8,
     borderWidth: 1,
+    justifyContent: 'center',
     marginBottom: spacing.md,
     minHeight: minTouchTarget,
-    justifyContent: 'center',
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  backButtonText: {
-    ...typography.secondary,
-    fontWeight: '600',
   },
   subtitle: {
-    marginTop: spacing.xs,
     marginBottom: spacing.lg,
+    marginTop: spacing.xs,
   },
-  section: {
-    marginBottom: spacing.xl,
-  },
-  sectionTitle: {
-    marginBottom: spacing.sm,
-  },
-  optionsWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  optionButton: {
+  banner: {
     borderRadius: 8,
     borderWidth: 1.5,
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
+    padding: spacing.md,
+  },
+  section: {
+    gap: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  input: {
+    borderRadius: 8,
     minHeight: minTouchTarget,
-    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
   },
-  optionText: {
-    ...typography.secondary,
-    fontWeight: '600',
+  secondaryButton: {
+    alignItems: 'center',
+    borderRadius: 8,
+    borderWidth: 2,
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    minHeight: minTouchTarget,
+    paddingHorizontal: spacing.lg,
   },
   submitButton: {
     alignItems: 'center',
     borderRadius: 8,
+    flexDirection: 'row',
+    gap: spacing.sm,
     justifyContent: 'center',
     marginTop: spacing.md,
-    marginBottom: spacing.xxl,
     minHeight: minTouchTarget,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
-  submitButtonText: {
+  bold: {
     fontWeight: '700',
   },
 });
