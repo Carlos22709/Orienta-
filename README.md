@@ -6,7 +6,7 @@ Orienta+ es una aplicación móvil que recomienda entre cuatro y cinco oportunid
 
 Proyecto del curso Desarrollo de Aplicaciones Móviles, Universidad de La Sabana. Equipo: Laura Vanesa Reyes Martínez, Carlos Augusto Sánchez Lombana y Juan Esteban Ramírez Hermosa.
 
-> **Estado:** en construcción. Hoy existe la estructura base: la app consulta el endpoint `/api/health` de la API propia. El flujo de negocio, la autenticación y la accesibilidad completa están en desarrollo. Ver [`docs/decisions/`](docs/decisions/README.md).
+> **Estado:** funcional de punta a punta en el proyecto de Supabase en la nube: inicio de sesión con Google (PKCE), cuestionario, recomendaciones, exploración, guardadas, detalle, verificación en dos pasos y derechos sobre los datos. Decisiones en [`docs/decisions/`](docs/decisions/README.md).
 
 ## Arquitectura
 
@@ -18,12 +18,16 @@ Proyecto del curso Desarrollo de Aplicaciones Móviles, Universidad de La Sabana
 
 ```
 apps/mobile/            app Expo
-  app/                  pantallas (Expo Router)
+  app/                  pantallas (Expo Router): bienvenida, cuestionario, (tabs)/, oportunidad/, perfil/
   src/auth/             sesión: PKCE, cliente REST de Supabase Auth, almacenamiento seguro
   src/security/         step-up: lectura de errores de la API y reglas de la verificación
   src/config/           variables de entorno
   src/store/            store de Redux, cliente de la API (RTK Query) y cola de silent refresh
-  src/theme/            tokens visuales accesibles
+  src/theme/            tokens del estilo Amanecer (contraste verificado en pruebas)
+  src/ui/               kit visual: logo, botón, tarjetas, filas de menú, progreso, retroalimentación háptica
+  src/components/       tarjeta de oportunidad, insignia de vigencia, opciones, código TOTP, estados
+  src/profile/          lógica del cuestionario, borrador local y envío del perfil
+  src/saved/            persistencia de las guardadas en el teléfono
 supabase/
   config.toml           configuración local de Supabase
   functions/api/        API propia (Hono): app.ts, routes/, pruebas *.test.ts
@@ -100,13 +104,29 @@ Estos comandos se ejecutaron con 100 % de éxito el 2026-11-10.
 
 ## Recorrido del usuario y pantallas
 
-Orienta+ guía al joven a través de un flujo estructurado y accesible:
+Las rutas están en `apps/mobile/app/`:
 
-1. **Bienvenida y consentimiento (`apps/mobile/app/welcome/index.tsx`):** Explica los alcances y límites del orientador, y solicita consentimiento informado conforme a la Ley 1581 de 2012.
-2. **Captura de perfil (`apps/mobile/app/profile/index.tsx`):** Formulario accesible paso a paso con controles táctiles amplios ($\ge 48\text{ dp}$) para municipio, educación, experiencia laboral, situación actual, intereses y disponibilidad.
-3. **Oportunidades recomendadas (`apps/mobile/app/recommendations/index.tsx`):** Lista con virtualización óptima que presenta deliberadamente 4 o 5 opciones verificadas para reducir la sobrecarga cognitiva. Incluye badges de vigencia con texto e íconos y razones transparentes.
-4. **Detalle de la oportunidad (`apps/mobile/app/opportunity/[id].tsx`):** Explicación en lenguaje claro, lista de requisitos, evidencia de verificación por el equipo y botón de postulación oficial.
-5. **Apertura oficial (`apps/mobile/src/utils/url.ts`):** Redirección segura hacia el sitio web oficial de la entidad convocante mediante el navegador del sistema (`expo-web-browser`), sin WebViews internos.
+1. **Bienvenida (`bienvenida.tsx`):**
+   - logo de brújula y propuesta de valor;
+   - el botón **Empezar** lleva al cuestionario y **Ya tengo cuenta** inicia sesión con Google.
+2. **Cuestionario (`cuestionario.tsx`):**
+   - una pregunta por pantalla, con barra de progreso;
+   - la fecha de nacimiento se elige con la rueda nativa del sistema, limitada a 18–29 años;
+   - las respuestas se tocan (radio o casilla accesibles) y el progreso se guarda en el teléfono;
+   - al final se pide la autorización de datos (Ley 1581 de 2012) y se inicia sesión con Google (PKCE).
+3. **Para ti (`(tabs)/para-ti.tsx`):**
+   - las 4 o 5 recomendaciones de las reglas de la decisión 0005;
+   - cada una con su insignia de vigencia (ícono y texto) y "Por qué para ti".
+4. **Explorar (`(tabs)/explorar.tsx`):** las oportunidades vigentes verificadas, con buscador y filtro por categoría.
+5. **Guardadas (`(tabs)/guardadas.tsx`):** las que la persona marca con el corazón, guardadas en el teléfono.
+6. **Perfil (`(tabs)/perfil.tsx`):**
+   - resumen y edición de las respuestas, y oportunidades vistas recientemente (`perfil/vistas.tsx`);
+   - verificación en dos pasos (`perfil/seguridad.tsx`);
+   - descargar o eliminar los datos con step-up (`perfil/datos.tsx`);
+   - cómo funciona Orienta+ (`como-funciona.tsx`) y cerrar sesión.
+7. **Detalle (`oportunidad/[id].tsx`):**
+   - requisitos y evidencia de verificación;
+   - apertura del sitio oficial en el navegador del sistema (`src/utils/url.ts`), sin WebView.
 
 Documentos de prueba y demostración:
 
@@ -169,15 +189,26 @@ Si `TOTP_ENCRYPTION_KEY` cambia, los factores TOTP ya inscritos dejan de poder d
 
 ## Accesibilidad
 
-Orienta+ apunta a WCAG 2.2 nivel AA adaptado a móvil:
+Orienta+ cumple WCAG 2.2 nivel AA adaptado a móvil (detalle por compromiso en la [matriz de trazabilidad](docs/accessibility/matriz-trazabilidad.md)):
 
-- semántica para VoiceOver y TalkBack;
-- contraste verificado de los tokens en temas claro y oscuro;
-- áreas táctiles de al menos 48;
-- estados que no dependen solo del color;
-- anuncios de carga y error.
-
-El avance y la evidencia de cada compromiso están en la [matriz de trazabilidad](docs/accessibility/matriz-trazabilidad.md).
+- **Lectores de pantalla:**
+  - `accessibilityRole`, `accessibilityLabel`, `accessibilityHint` y `accessibilityState` (`checked`, `selected`, `busy`, `disabled`);
+  - tarjetas agrupadas para no fragmentar el foco;
+  - encabezados marcados;
+  - modal de verificación con `accessibilityViewIsModal`.
+- **Contraste:** paleta Amanecer clara y oscura verificada con pruebas automáticas (`tokens.test.ts`, `amanecer.test.ts`): texto ≥ 4.5:1 y bordes ≥ 3:1.
+- **Tipografía adaptativa:** Nunito con `lineHeight` amplio y escalado del sistema activo.
+- **Sin depender del color:** la vigencia y las opciones elegidas siempre llevan ícono y texto.
+- **Ergonomía táctil:**
+  - áreas táctiles de 48 o más;
+  - `hitSlop` en íconos pequeños;
+  - botón para volver en cada paso.
+- **Retroalimentación:** cada éxito o error se muestra en pantalla, se anuncia al lector y vibra (`src/ui/feedback.ts`).
+- **Sin límites de tiempo estrictos:**
+  - el cuestionario guarda el progreso;
+  - la sesión se renueva sola;
+  - si el reto de 2FA vence, se pide otro sin perder la acción.
+- **Autenticación accesible (3.3.8):** Google sin contraseñas y código TOTP que admite pegar y autocompletar.
 
 ## Forma de trabajo
 

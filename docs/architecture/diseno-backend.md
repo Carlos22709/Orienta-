@@ -144,6 +144,8 @@ Todas las respuestas de error usan el formato `{ "error": "<codigo>", "message":
 | `GET` | `/me/profile` | `access_token` | Perfil actual y pasos completados (permite retomar). |
 | `PUT` | `/me/profile` | `access_token` | Guarda uno o varios pasos del perfil. Exige consentimiento registrado. Responde `422` con errores por campo. |
 | `GET` | `/recommendations` | `access_token` | Entre 4 y 5 oportunidades vigentes y elegibles para el perfil guardado, cada una con su razón. Responde `409 profile_incomplete` si falta información. |
+| `GET` | `/opportunities` | `access_token` | Todas las oportunidades vigentes (no cerradas), primero las que cierran antes, con su vigencia. Alimenta la pestaña Explorar. |
+| `GET` | `/me/views` | `access_token` | Oportunidades que la persona ya abrió, la más reciente primero (máximo 30), para retomarlas (compromiso C3). |
 | `GET` | `/opportunities/:id` | `access_token` | Detalle: requisitos, entidad, fuente, vigencia, verificación y enlace oficial. Registra la vista. |
 | `GET` | `/mfa/status` | `access_token` | `{ enrolled }`: indica si el 2FA está activo. |
 | `POST` | `/mfa/enroll` | `access_token` | `201` con `{ otpauthUri, secret }`. `secret` es la semilla en Base32 para escribirla a mano. `409 mfa_already_enrolled` si el 2FA ya está activo. |
