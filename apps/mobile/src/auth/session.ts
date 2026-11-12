@@ -1,5 +1,5 @@
 import type { Dispatch } from '@reduxjs/toolkit';
-import { sessionEnded, sessionStarted } from '../store/authSlice';
+import { sessionEnded, sessionStarted, type SignedOutReason } from '../store/authSlice';
 import type { AuthClient, Session } from './authClient';
 import type { TokenStorage } from './tokenStorage';
 
@@ -100,6 +100,18 @@ export async function endSession(
   if (deps.authClient && accessToken) {
     await deps.authClient.signOut(accessToken);
   }
+  await forgetSession(deps, dispatch, 'signedOut');
+}
+
+/**
+ * Borra la sesión solo del dispositivo, sin llamar a Supabase. Se usa después
+ * de eliminar la cuenta: la persona ya no existe y no hay sesión que revocar.
+ */
+export async function forgetSession(
+  deps: SessionDeps,
+  dispatch: Dispatch,
+  reason: SignedOutReason,
+): Promise<void> {
   await deps.storage.clear();
-  dispatch(sessionEnded('signedOut'));
+  dispatch(sessionEnded(reason));
 }

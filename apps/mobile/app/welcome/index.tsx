@@ -39,6 +39,7 @@ const SIGNED_OUT_MESSAGES: Record<SignedOutReason, string> = {
   unavailable:
     'No pudimos recuperar tu sesión porque no hubo conexión. Intenta iniciar sesión de nuevo.',
   signedOut: 'Cerraste sesión.',
+  deleted: 'Eliminamos tu cuenta y todos tus datos de Orienta+.',
 };
 
 /**
@@ -246,6 +247,19 @@ export default function WelcomeScreen() {
             <Text style={[typography.secondary, { color: colors.textMuted }]}>
               Sesión iniciada{user?.email ? ` como ${user.email}` : ''}.
             </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityHint="Abre la verificación en dos pasos, la descarga de tus datos y la eliminación de tu cuenta"
+              onPress={() => router.push('/account')}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                { borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Text style={[typography.body, styles.continueText, { color: colors.primary }]}>
+                Mis datos y seguridad
+              </Text>
+            </Pressable>
             <Pressable
               accessibilityRole="button"
               accessibilityHint="Cierra tu sesión en este dispositivo"

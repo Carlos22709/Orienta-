@@ -18,8 +18,9 @@ export type AuthStatus = 'restoring' | 'signedIn' | 'signedOut';
  * - expired: Supabase rechazó la renovación; hay que volver a entrar.
  * - unavailable: no se pudo contactar a Supabase; se puede reintentar.
  * - signedOut: la persona cerró sesión.
+ * - deleted: la persona eliminó su cuenta y sus datos.
  */
-export type SignedOutReason = 'expired' | 'unavailable' | 'signedOut';
+export type SignedOutReason = 'expired' | 'unavailable' | 'signedOut' | 'deleted';
 
 export interface AuthState {
   status: AuthStatus;

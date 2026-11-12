@@ -3,7 +3,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { api } from '../store/api';
 import type { AppDispatch, RootState } from '../store';
 import { type BrowserDeps, signInWithGoogle } from './googleSignIn';
-import { endSession, restoreSession } from './session';
+import { endSession, forgetSession, restoreSession } from './session';
 import { sessionDeps } from './sessionDeps';
 
 /**
@@ -33,6 +33,14 @@ export function restoreSessionOnLaunch() {
 export function signInWithGoogleAction() {
   return (dispatch: AppDispatch) =>
     signInWithGoogle(sessionDeps, systemBrowser, dispatch);
+}
+
+/** Tras eliminar la cuenta (DELETE /me): limpia el dispositivo y la caché. */
+export function finishAccountDeletion() {
+  return async (dispatch: AppDispatch) => {
+    await forgetSession(sessionDeps, dispatch, 'deleted');
+    dispatch(api.util.resetApiState());
+  };
 }
 
 /** Cierra sesión y borra la caché de la API para no dejar datos personales. */

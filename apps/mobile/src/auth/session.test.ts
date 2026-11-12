@@ -5,7 +5,13 @@ import {
   createMemoryTokenStorage,
   makeSession,
 } from '../testing/fakes';
-import { endSession, refreshStoredSession, restoreSession, startSession } from './session';
+import {
+  endSession,
+  forgetSession,
+  refreshStoredSession,
+  restoreSession,
+  startSession,
+} from './session';
 
 function createTestStore() {
   return configureStore({ reducer: { auth: authSlice.reducer } });
@@ -110,6 +116,21 @@ describe('sesión', () => {
       signedOutReason: 'signedOut',
       accessToken: null,
       user: null,
+    });
+  });
+
+  it('tras eliminar la cuenta borra la sesión local sin llamar a Supabase', async () => {
+    const store = createTestStore();
+    const storage = createMemoryTokenStorage('refresh-1');
+    const authClient = createFakeAuthClient(() => ({ ok: false, reason: 'invalid' }));
+
+    await forgetSession({ authClient, storage }, store.dispatch, 'deleted');
+
+    expect(authClient.signOut).not.toHaveBeenCalled();
+    expect(storage.value).toBeNull();
+    expect(store.getState().auth).toMatchObject({
+      status: 'signedOut',
+      signedOutReason: 'deleted',
     });
   });
 
