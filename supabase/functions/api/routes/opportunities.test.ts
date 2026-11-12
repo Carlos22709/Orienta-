@@ -63,3 +63,34 @@ Deno.test("el detalle exige sesión", async () => {
 
   assertEquals(res.status, 401);
 });
+
+Deno.test("GET /api/opportunities lista las vigentes, primero las que cierran antes", async () => {
+  const { app, repository } = createTestApp();
+  repository.opportunities = [
+    makeOpportunityRecord({ id: "abierta", deadline: null }),
+    makeOpportunityRecord({ id: "cerrada", deadline: "2026-11-01" }),
+    makeOpportunityRecord({ id: "pronto", deadline: "2026-11-12" }),
+    makeOpportunityRecord({ id: "despues", deadline: "2026-12-20" }),
+    makeOpportunityRecord({ id: "retirada", status: "withdrawn" }),
+  ];
+
+  const res = await app.request("/api/opportunities", { headers: AUTH_HEADER });
+  const body = await res.json();
+
+  assertEquals(res.status, 200);
+  assertEquals(
+    body.items.map((i: { id: string }) => i.id),
+    ["pronto", "despues", "abierta"],
+  );
+  assertEquals(body.items[0].validity, { kind: "closing_soon", daysLeft: 3 });
+  // La lista no registra vistas: solo el detalle lo hace.
+  assertEquals(repository.views, []);
+});
+
+Deno.test("GET /api/opportunities sin sesión responde 401", async () => {
+  const { app } = createTestApp();
+
+  const res = await app.request("/api/opportunities");
+
+  assertEquals(res.status, 401);
+});
