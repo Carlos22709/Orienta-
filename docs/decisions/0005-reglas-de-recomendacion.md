@@ -32,7 +32,8 @@ Todas las condiciones deben cumplirse:
 2. **Ubicación:** `municipality_codes` es nulo (nacional o virtual) o incluye el municipio del perfil.
 3. **Educación:** el nivel del perfil es mayor o igual que `min_education`, según el orden del enumerado.
 4. **Experiencia:** el nivel del perfil es mayor o igual que `min_experience`, según el orden del enumerado.
-5. **Disponibilidad:** `availability` de la oportunidad es nula, o comparte al menos un valor con la del perfil, o el perfil declara `flexible`.
+5. **Disponibilidad:** `availability` de la oportunidad es nula, o comparte al menos un valor con la del perfil, o el perfil declara `flexible`, o la oportunidad incluye `flexible`.
+   - *Cambio del 2026-11-12, aprobado por Carlos:* antes, una oportunidad marcada solo como `flexible` no aparecía para quien declara, por ejemplo, `weekends`, aunque "flexible" significa que el horario se adapta. Con los datos reales, el perfil de prueba P3 (solo fines de semana) recibía 3 recomendaciones. Con el cambio, los cinco perfiles de la decisión [0007](0007-curacion-de-oportunidades.md) reciben 5.
 
 Las oportunidades que no cumplen **nunca** se muestran como recomendación. No se rellena con opciones no elegibles.
 
