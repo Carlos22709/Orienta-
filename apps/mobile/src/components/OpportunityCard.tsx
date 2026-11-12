@@ -6,6 +6,7 @@ import { useTheme } from '../theme/useTheme';
 import { categoryMeta, isCategoryKey } from '../ui/categories';
 import { SaveButton } from './SaveButton';
 import { StatusBadge, type ValidityKind } from './StatusBadge';
+import { validityLabel } from './statusBadgeHelper';
 
 export const CATEGORY_LABELS: Record<string, string> = {
   employment: 'Empleo',
@@ -34,6 +35,22 @@ export interface OpportunityItem {
   reasons: string[];
 }
 
+/**
+ * Etiqueta que anuncia el lector de pantalla para toda la tarjeta.
+ *
+ * La zona principal agrupa a sus hijos (accessible), así que el lector no lee
+ * el StatusBadge por separado: la vigencia tiene que ir aquí. Va justo
+ * después del título porque es lo que decide si vale la pena abrirla.
+ */
+export function buildOpportunityLabel(opportunity: OpportunityItem): string {
+  const categoryName = CATEGORY_LABELS[opportunity.category] ?? opportunity.category;
+  const modalityName = MODALITY_LABELS[opportunity.modality] ?? opportunity.modality;
+  const reasonsText = opportunity.reasons.length > 0
+    ? ` Por qué te la recomendamos: ${opportunity.reasons.join('. ')}.`
+    : '';
+  return `${opportunity.title}. ${validityLabel(opportunity.validity)}. Convocatoria de ${categoryName}, modalidad ${modalityName}, ofrecida por ${opportunity.entityName}.${reasonsText}`;
+}
+
 export interface OpportunityCardProps {
   opportunity: OpportunityItem;
   onPress: () => void;
@@ -56,11 +73,7 @@ export function OpportunityCard({ opportunity, onPress }: OpportunityCardProps) 
   const categoryName = CATEGORY_LABELS[opportunity.category] ?? opportunity.category;
   const modalityName = MODALITY_LABELS[opportunity.modality] ?? opportunity.modality;
   const reasons = opportunity.reasons;
-
-  const reasonsText = reasons.length > 0
-    ? `Por qué te la recomendamos: ${reasons.join('. ')}.`
-    : '';
-  const accessibilityLabel = `${opportunity.title}. Convocatoria de ${categoryName}, modalidad ${modalityName}, ofrecida por ${opportunity.entityName}. ${reasonsText}`;
+  const accessibilityLabel = buildOpportunityLabel(opportunity);
 
   return (
     <View

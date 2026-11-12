@@ -1,4 +1,9 @@
-import { CATEGORY_LABELS, MODALITY_LABELS, type OpportunityItem } from './OpportunityCard';
+import {
+  buildOpportunityLabel,
+  CATEGORY_LABELS,
+  MODALITY_LABELS,
+  type OpportunityItem,
+} from './OpportunityCard';
 
 describe('OpportunityCard (WCAG F2, M1 - compromisos de tarjeta)', () => {
   const sampleOpportunity: OpportunityItem = {
@@ -26,16 +31,33 @@ describe('OpportunityCard (WCAG F2, M1 - compromisos de tarjeta)', () => {
   });
 
   it('genera una etiqueta de accesibilidad agrupada sin fragmentar el foco (WCAG 1.3.1, 2.4.3)', () => {
-    const categoryName = CATEGORY_LABELS[sampleOpportunity.category];
-    const modalityName = MODALITY_LABELS[sampleOpportunity.modality];
-    const reasonsText = `Por qué te la recomendamos: ${sampleOpportunity.reasons.join('. ')}.`;
-
-    const label = `${sampleOpportunity.title}. Convocatoria de ${categoryName}, modalidad ${modalityName}, ofrecida por ${sampleOpportunity.entityName}. ${reasonsText}`;
+    const label = buildOpportunityLabel(sampleOpportunity);
 
     expect(label).toContain('Talento Tech MinTIC');
     expect(label).toContain('Convocatoria de Formación');
     expect(label).toContain('modalidad Virtual');
     expect(label).toContain('Te interesa la formación');
+  });
+
+  // Hallazgo H2: la tarjeta agrupa a sus hijos, así que el lector no lee el
+  // StatusBadge; la vigencia debe estar en la etiqueta (WCAG 1.4.1, V2).
+  it('anuncia la vigencia justo después del título', () => {
+    const closing = buildOpportunityLabel({
+      ...sampleOpportunity,
+      validity: { kind: 'closing_soon', daysLeft: 2 },
+    });
+    expect(closing.startsWith('Talento Tech MinTIC - Bootcamps en Programación. Atención: Cierra en 2 días.')).toBe(true);
+
+    expect(buildOpportunityLabel(sampleOpportunity)).toContain('Convocatoria vigente');
+    expect(
+      buildOpportunityLabel({ ...sampleOpportunity, validity: { kind: 'closed' } }),
+    ).toContain('Convocatoria cerrada');
+  });
+
+  it('omite las razones cuando no hay (listado de Explorar) sin dejar espacios sobrantes', () => {
+    const label = buildOpportunityLabel({ ...sampleOpportunity, reasons: [] });
+    expect(label).not.toContain('Por qué te la recomendamos');
+    expect(label.endsWith('(MinTIC).')).toBe(true);
   });
 
   it('respeta la estructura de datos obligatoria para la tarjeta', () => {
