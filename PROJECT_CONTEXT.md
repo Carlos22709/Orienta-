@@ -191,7 +191,7 @@ Estado al 2026-11-11:
   - pruebas en Deno y script de integración contra Supabase local;
   - proyecto en la nube creado; migración y seed aplicados.
 - App (`apps/mobile/`):
-  - Expo Router, store de Redux con RTK Query, tokens visuales y pantalla provisional de salud de la API;
+  - diseño Amanecer (paleta cálida accesible, Nunito, logo de brújula): bienvenida, cuestionario paso a paso con rueda de fecha nativa, pestañas Para ti, Explorar, Guardadas (en el teléfono) y Perfil, detalle de oportunidad y Cómo funciona;
   - sesión: PKCE, cliente REST de Supabase Auth, `refresh_token` en `expo-secure-store`, `access_token` en Redux, restauración al abrir y cola de silent refresh, con pruebas en Jest;
   - inicio de sesión con Google (PKCE) desde la bienvenida, con cierre de sesión; el proveedor Google está activo en el proyecto de la nube;
   - "Mis datos y seguridad" (`app/account/`): activación del 2FA (abrir en la app autenticadora, QR y clave copiable), descarga de los datos y eliminación de la cuenta, ambas con step-up;

@@ -2,6 +2,7 @@
 
 - **Estado:** propuesta del agente, aprobada por delegación de Carlos; ratificada por Laura y Juan el 2026-11-12 (confirmación en el grupo del equipo). Laura es la responsable del sistema visual y puede ajustarla, siempre que vuelva a verificar los contrastes.
 - **Fecha:** 2026-11-09.
+- **Actualización (2026-11-12, aprobada por Carlos):** la paleta azul se reemplaza por el estilo **Amanecer**: coral y durazno sobre crema en modo claro y tonos cálidos oscuros en modo oscuro. Se suman la tipografía Nunito, el logo de la brújula y un tono suave por categoría. Los valores vigentes y sus contrastes están en `apps/mobile/src/theme/tokens.ts` y se verifican en `tokens.test.ts` y `amanecer.test.ts` (texto ≥ 4.5:1 y bordes ≥ 3:1 en ambos temas). Las tablas de colores de esta decisión quedan como historia del primer diseño.
 
 ## Contexto
 
