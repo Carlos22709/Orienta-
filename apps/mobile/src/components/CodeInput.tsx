@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
 import { minTouchTarget, spacing, typography } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
+import { notifyError } from '../ui/feedback';
 
 export interface CodeInputProps {
   value: string;
@@ -34,7 +35,7 @@ export function CodeInput({
 
   useEffect(() => {
     if (error) {
-      AccessibilityInfo.announceForAccessibility(error);
+      notifyError(error);
     }
   }, [error]);
 

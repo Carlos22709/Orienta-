@@ -22,6 +22,7 @@ import {
 import { selectAuthStatus } from '../../src/store/authSlice';
 import { fonts, minTouchTarget, spacing, typography } from '../../src/theme/tokens';
 import { BackButton } from '../../src/ui/layout';
+import { notifyError, notifySuccess, notifyWarning } from '../../src/ui/feedback';
 import { useTheme } from '../../src/theme/useTheme';
 
 /**
@@ -50,7 +51,7 @@ export default function AccountScreen() {
   // Exportación lista: se abre el menú del sistema para guardar o compartir.
   useEffect(() => {
     if (exportAction.phase !== 'done' || !exportAction.result) return;
-    AccessibilityInfo.announceForAccessibility('Tus datos están listos');
+    notifySuccess('Tus datos están listos');
     void Share.share({
       title: 'Mis datos de Orienta+',
       message: JSON.stringify(exportAction.result, null, 2),
@@ -68,7 +69,7 @@ export default function AccountScreen() {
     ? null
     : (deleteAction.message ?? exportAction.message);
   useEffect(() => {
-    if (notice) AccessibilityInfo.announceForAccessibility(notice);
+    if (notice) notifyError(notice);
   }, [notice]);
 
   const needsEnrollment =
@@ -189,9 +190,7 @@ export default function AccountScreen() {
               hint="Te pedirá confirmar antes de borrar"
               onPress={() => {
                 setConfirmingDelete(true);
-                AccessibilityInfo.announceForAccessibility(
-                  '¿Seguro que quieres eliminar tu cuenta y todos tus datos?',
-                );
+                notifyWarning('¿Seguro que quieres eliminar tu cuenta y todos tus datos?');
               }}
             />
           )}

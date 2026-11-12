@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet } from 'react-native';
+import { notifySelection } from '../ui/feedback';
 import { useAppDispatch, useAppSelector } from '../store';
 import { savedToggled, selectSavedItems, type SavedOpportunity } from '../store/savedSlice';
 import { minTouchTarget } from '../theme/tokens';
@@ -14,6 +15,7 @@ export function SaveButton({ opportunity }: { opportunity: Omit<SavedOpportunity
 
   const toggle = () => {
     dispatch(savedToggled({ ...opportunity, savedAt: new Date().toISOString() }));
+    notifySelection();
     AccessibilityInfo.announceForAccessibility(
       saved ? 'Quitada de guardadas' : 'Guardada',
     );

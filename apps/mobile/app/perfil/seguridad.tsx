@@ -27,6 +27,7 @@ import {
 import { selectAuthStatus } from '../../src/store/authSlice';
 import { fonts, minTouchTarget, spacing, typography } from '../../src/theme/tokens';
 import { BackButton } from '../../src/ui/layout';
+import { notifyError, notifySuccess } from '../../src/ui/feedback';
 import { useTheme } from '../../src/theme/useTheme';
 
 /**
@@ -54,9 +55,10 @@ export default function TwoFactorScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [activated, setActivated] = useState(false);
 
-  const announce = (text: string) => {
+  const announce = (text: string, tone: 'error' | 'success' = 'error') => {
     setNotice(text);
-    AccessibilityInfo.announceForAccessibility(text);
+    if (tone === 'success') notifySuccess(text);
+    else notifyError(text);
   };
 
   const handleStart = async () => {
@@ -85,7 +87,7 @@ export default function TwoFactorScreen() {
   const handleCopy = async () => {
     if (!enrollment) return;
     await Clipboard.setStringAsync(enrollment.secret);
-    announce('Clave copiada. Pégala en tu app autenticadora.');
+    announce('Clave copiada. Pégala en tu app autenticadora.', 'success');
   };
 
   const handleConfirm = async () => {
@@ -95,7 +97,7 @@ export default function TwoFactorScreen() {
       await confirmEnrollment({ code }).unwrap();
       setEnrollment(null);
       setActivated(true);
-      AccessibilityInfo.announceForAccessibility('Verificación en dos pasos activada');
+      notifySuccess('Verificación en dos pasos activada');
     } catch (error) {
       const apiError = readApiError(error);
       if (apiError.code === 'invalid_code' || apiError.code === 'validation_error') {

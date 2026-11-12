@@ -13,6 +13,7 @@ import { useTheme } from '../src/theme/useTheme';
 import { Button } from '../src/ui/Button';
 import { Notice } from '../src/ui/layout';
 import { LogoMark, Wordmark } from '../src/ui/Logo';
+import { notifyError } from '../src/ui/feedback';
 
 const HIGHLIGHTS = [
   { icon: 'shield-checkmark', text: 'Solo oportunidades reales y verificadas' },
@@ -45,7 +46,7 @@ export default function WelcomeScreen() {
       return;
     }
     setMessage(SIGN_IN_MESSAGES[outcome]);
-    AccessibilityInfo.announceForAccessibility(SIGN_IN_MESSAGES[outcome]);
+    notifyError(SIGN_IN_MESSAGES[outcome]);
   };
 
   return (

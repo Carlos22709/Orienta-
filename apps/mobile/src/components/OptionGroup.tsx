@@ -3,6 +3,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { minTouchTarget, radius, spacing, typography } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
+import { notifySelection } from '../ui/feedback';
 
 export interface OptionGroupProps {
   /** Pregunta del grupo; el lector la anuncia como encabezado. */
@@ -71,7 +72,10 @@ export function OptionGroup({
               accessibilityRole={role}
               accessibilityState={{ checked }}
               accessibilityLabel={option.label}
-              onPress={() => onToggle(option.value)}
+              onPress={() => {
+                notifySelection();
+                onToggle(option.value);
+              }}
               style={({ pressed }) => [
                 styles.option,
                 {
