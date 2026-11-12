@@ -95,6 +95,12 @@ export default function ProfileTab() {
       <Text style={[typography.label, { color: colors.textMuted }]}>CUENTA Y PRIVACIDAD</Text>
       <Card style={styles.menu}>
         <MenuRow
+          icon="accessibility-outline"
+          label="Accesibilidad"
+          hint="Tema, tamaño del texto y vibración"
+          onPress={() => router.push('/accesibilidad')}
+        />
+        <MenuRow
           icon="shield-checkmark-outline"
           label="Verificación en dos pasos"
           value={mfa.data ? (mfa.data.enrolled ? 'Activa' : 'Inactiva') : undefined}

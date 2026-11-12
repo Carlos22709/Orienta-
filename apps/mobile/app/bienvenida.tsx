@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { AccessibilityInfo, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { AccessibilityInfo, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import { signInWithGoogleAction } from '../src/auth/actions';
@@ -63,6 +63,17 @@ export default function WelcomeScreen() {
 
       <SafeAreaView style={styles.flex}>
         <ScrollView contentContainerStyle={styles.content}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Accesibilidad"
+            accessibilityHint="Ajusta el tema, el tamaño del texto y la vibración"
+            onPress={() => router.push('/accesibilidad')}
+            hitSlop={8}
+            style={({ pressed }) => [styles.a11yLink, { backgroundColor: colors.surface, opacity: pressed ? 0.8 : 1 }]}
+          >
+            <Ionicons name="accessibility" size={20} color={colors.primary} />
+            <Text style={[typography.label, { color: colors.primary }]}>Accesibilidad</Text>
+          </Pressable>
           <View style={styles.hero}>
             <LogoMark size={112} />
             <Wordmark size={34} />
@@ -129,4 +140,13 @@ const styles = StyleSheet.create({
   highlight: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   highlightText: { flex: 1 },
   actions: { gap: spacing.sm },
+  a11yLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-end',
+    gap: 6,
+    minHeight: 44,
+    paddingHorizontal: spacing.md,
+    borderRadius: 999,
+  },
 });
