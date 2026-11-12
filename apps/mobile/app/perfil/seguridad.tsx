@@ -25,7 +25,8 @@ import {
   useStartMfaEnrollmentMutation,
 } from '../../src/store/api';
 import { selectAuthStatus } from '../../src/store/authSlice';
-import { minTouchTarget, spacing, typography } from '../../src/theme/tokens';
+import { fonts, minTouchTarget, spacing, typography } from '../../src/theme/tokens';
+import { BackButton } from '../../src/ui/layout';
 import { useTheme } from '../../src/theme/useTheme';
 
 /**
@@ -122,6 +123,7 @@ export default function TwoFactorScreen() {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <BackButton />
         <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.text }]}>
           Verificación en dos pasos
         </Text>
@@ -268,7 +270,7 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 22,
     padding: spacing.lg,
     gap: spacing.md,
   },
@@ -276,7 +278,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#FFFFFF',
     padding: spacing.sm,
-    borderRadius: 8,
+    borderRadius: 16,
   },
   secret: {
     fontFamily: Platform.select({ ios: 'Courier', default: 'monospace' }),
@@ -284,19 +286,19 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     letterSpacing: 1,
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 16,
     padding: spacing.md,
     textAlign: 'center',
   },
   button: {
     minHeight: minTouchTarget,
-    borderRadius: 8,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.md,
   },
   strong: {
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
 });

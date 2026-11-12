@@ -20,7 +20,8 @@ import {
   useGetMfaStatusQuery,
 } from '../../src/store/api';
 import { selectAuthStatus } from '../../src/store/authSlice';
-import { minTouchTarget, spacing, typography } from '../../src/theme/tokens';
+import { fonts, minTouchTarget, spacing, typography } from '../../src/theme/tokens';
+import { BackButton } from '../../src/ui/layout';
 import { useTheme } from '../../src/theme/useTheme';
 
 /**
@@ -59,7 +60,7 @@ export default function AccountScreen() {
   // Cuenta eliminada: se limpia el dispositivo y se vuelve a la bienvenida.
   useEffect(() => {
     if (deleteAction.phase !== 'done') return;
-    void dispatch(finishAccountDeletion()).then(() => router.replace('/welcome'));
+    void dispatch(finishAccountDeletion()).then(() => router.replace('/bienvenida'));
   }, [deleteAction.phase, dispatch, router]);
 
   // Mensajes de resultado para el lector de pantalla.
@@ -83,7 +84,7 @@ export default function AccountScreen() {
           <Text style={[typography.body, { color: colors.text }]}>
             Inicia sesión para ver y administrar tus datos.
           </Text>
-          <PrimaryButton label="Ir a la bienvenida" onPress={() => router.replace('/welcome')} />
+          <PrimaryButton label="Ir a la bienvenida" onPress={() => router.replace('/bienvenida')} />
         </View>
       </SafeAreaView>
     );
@@ -100,6 +101,7 @@ export default function AccountScreen() {
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
       <ScrollView contentContainerStyle={styles.content}>
+        <BackButton />
         <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.text }]}>
           Mis datos y seguridad
         </Text>
@@ -113,7 +115,7 @@ export default function AccountScreen() {
             {needsEnrollment && (
               <PrimaryButton
                 label="Activar verificación en dos pasos"
-                onPress={() => router.push('/account/two-factor')}
+                onPress={() => router.push('/perfil/seguridad')}
               />
             )}
           </View>
@@ -138,7 +140,7 @@ export default function AccountScreen() {
               label={mfaStatus.isError ? 'Reintentar' : 'Activar'}
               hint="Abre los pasos para conectar tu app autenticadora"
               onPress={() =>
-                mfaStatus.isError ? mfaStatus.refetch() : router.push('/account/two-factor')
+                mfaStatus.isError ? mfaStatus.refetch() : router.push('/perfil/seguridad')
               }
             />
           )}
@@ -286,13 +288,13 @@ const styles = StyleSheet.create({
   },
   card: {
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: 22,
     padding: spacing.lg,
     gap: spacing.md,
   },
   button: {
     minHeight: minTouchTarget,
-    borderRadius: 8,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
@@ -302,6 +304,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   strong: {
-    fontWeight: '700',
+    fontFamily: fonts.bold,
   },
 });

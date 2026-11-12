@@ -18,7 +18,7 @@ export default function AuthCallbackScreen() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace('/welcome');
+      router.replace('/bienvenida');
     }
   }, [router]);
 

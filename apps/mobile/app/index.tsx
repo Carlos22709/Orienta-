@@ -1,259 +1,31 @@
-import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
-import {
-  AccessibilityInfo,
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { env } from '../src/config/env';
-import { useGetHealthQuery } from '../src/store/api';
-import { minTouchTarget, spacing, typography } from '../src/theme/tokens';
-import { useTheme } from '../src/theme/useTheme';
-
-type ServerStatus = 'missing-config' | 'checking' | 'available' | 'unavailable';
-
-const STATUS_MESSAGES: Record<ServerStatus, string> = {
-  'missing-config':
-    'Falta configurar la dirección del servidor (EXPO_PUBLIC_API_URL).',
-  checking: 'Comprobando la conexión con el servidor…',
-  available: 'El servidor está disponible.',
-  unavailable:
-    'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
-};
-
-// Íconos de refuerzo visual: el estado nunca depende solo del color (Fase 2, V2).
-const STATUS_ICONS: Record<Exclude<ServerStatus, 'checking'>, string> = {
-  'missing-config': '⚠',
-  available: '✓',
-  unavailable: '✕',
-};
+import { Redirect } from 'expo-router';
+import React from 'react';
+import { useAppSelector } from '../src/store';
+import { useGetProfileQuery } from '../src/store/api';
+import { selectAuthStatus } from '../src/store/authSlice';
+import { Splash } from '../src/ui/Splash';
 
 /**
- * Pantalla inicial provisional: comprueba de extremo a extremo que la app
- * llega a la API propia (GET /api/health). Se reemplazará por la bienvenida.
+ * Entrada de la app: decide a dónde ir.
+ * - Sin sesión → bienvenida.
+ * - Con sesión y perfil incompleto → cuestionario.
+ * - Con sesión y perfil completo → "Para ti".
  */
-export default function HomeScreen() {
-  const { colors } = useTheme();
-  const router = useRouter();
-  const hasApiUrl = env.apiUrl !== null;
-  const { isFetching, isSuccess, isError, refetch } = useGetHealthQuery(
-    undefined,
-    { skip: !hasApiUrl },
-  );
+export default function Entry() {
+  const status = useAppSelector(selectAuthStatus);
+  const profile = useGetProfileQuery(undefined, { skip: status !== 'signedIn' });
 
-  // Recuerda si el último resultado fue un error para mantener visible el botón
-  // de reintento mientras se vuelve a consultar (evita que el foco se pierda).
-  const [hasFailed, setHasFailed] = useState(false);
-  useEffect(() => {
-    if (isSuccess) setHasFailed(false);
-    else if (isError) setHasFailed(true);
-  }, [isSuccess, isError]);
-
-  const status: ServerStatus = !hasApiUrl
-    ? 'missing-config'
-    : isFetching
-      ? 'checking'
-      : isSuccess
-        ? 'available'
-        : isError
-          ? 'unavailable'
-          : 'checking';
-
-  // Anuncia al lector de pantalla cada cambio de estado posterior al primero.
-  const previousStatus = useRef<ServerStatus | null>(null);
-  useEffect(() => {
-    if (previousStatus.current !== null && previousStatus.current !== status) {
-      AccessibilityInfo.announceForAccessibility(STATUS_MESSAGES[status]);
-    }
-    previousStatus.current = status;
-  }, [status]);
-
-  const statusColor = {
-    'missing-config': colors.warning,
-    checking: colors.primary,
-    available: colors.success,
-    unavailable: colors.danger,
-  }[status];
-
-  const isRetrying = status === 'checking';
-  const showRetry = hasApiUrl && hasFailed && status !== 'available';
-
-  return (
-    <SafeAreaView
-      style={[styles.safeArea, { backgroundColor: colors.background }]}
-    >
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text
-          accessibilityRole="header"
-          style={[typography.screenTitle, { color: colors.text }]}
-        >
-          Orienta+
-        </Text>
-        <Text style={[typography.body, { color: colors.textMuted }]}>
-          Oportunidades reales, claras y seguras para dar el siguiente paso.
-        </Text>
-
-        {/* Tarjeta agrupada: el lector la anuncia como una sola unidad (F2). */}
-        <View
-          accessible
-          accessibilityLabel={`Estado del servidor. ${STATUS_MESSAGES[status]}`}
-          style={[
-            styles.statusCard,
-            { backgroundColor: colors.surface, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[typography.cardTitle, { color: colors.text }]}>
-            Estado del servidor
-          </Text>
-          <View style={styles.statusRow}>
-            {status === 'checking' ? (
-              <ActivityIndicator color={statusColor} />
-            ) : (
-              <Text style={[typography.cardTitle, { color: statusColor }]}>
-                {STATUS_ICONS[status]}
-              </Text>
-            )}
-            <Text
-              style={[typography.body, styles.statusText, { color: colors.text }]}
-            >
-              {STATUS_MESSAGES[status]}
-            </Text>
-          </View>
-        </View>
-
-        {/* Flujo completo de navegación: Bienvenida -> Perfil -> Recomendaciones */}
-        <View style={styles.navigationSection}>
-          <Text style={[typography.cardTitle, { color: colors.text, marginBottom: spacing.sm }]}>
-            Recorrido del usuario
-          </Text>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Iniciar recorrido: Bienvenida y consentimiento"
-            accessibilityHint="Explica qué hace Orienta+ y solicita consentimiento informado"
-            onPress={() => router.push('/welcome')}
-            style={({ pressed }) => [
-              styles.navButton,
-              { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Text style={[typography.body, { color: colors.primary, fontWeight: '600' }]}>
-              1. Bienvenida y consentimiento →
-            </Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Configurar o editar perfil"
-            accessibilityHint="Captura municipio, educación, situación e intereses"
-            onPress={() => router.push('/profile')}
-            style={({ pressed }) => [
-              styles.navButton,
-              { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Text style={[typography.body, { color: colors.primary, fontWeight: '600' }]}>
-              2. Captura y edición de perfil →
-            </Text>
-          </Pressable>
-
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ver recomendaciones de oportunidades"
-            accessibilityHint="Abre la lista de 4 o 5 convocatorias recomendadas según el perfil"
-            onPress={() => router.push('/recommendations')}
-            style={({ pressed }) => [
-              styles.button,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Text
-              style={[
-                typography.body,
-                styles.buttonLabel,
-                { color: colors.onPrimary },
-              ]}
-            >
-              3. Ver oportunidades recomendadas (4-5) →
-            </Text>
-          </Pressable>
-        </View>
-
-        {showRetry && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityHint="Vuelve a comprobar la conexión con el servidor"
-            accessibilityState={{ disabled: isRetrying, busy: isRetrying }}
-            disabled={isRetrying}
-            onPress={refetch}
-            style={({ pressed }) => [
-              styles.button,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.85 : 1 },
-            ]}
-          >
-            <Text
-              style={[
-                typography.body,
-                styles.buttonLabel,
-                { color: colors.onPrimary },
-              ]}
-            >
-              {isRetrying ? 'Reintentando…' : 'Reintentar'}
-            </Text>
-          </Pressable>
-        )}
-      </ScrollView>
-    </SafeAreaView>
-  );
+  if (status === 'signedOut') {
+    return <Redirect href="/bienvenida" />;
+  }
+  if (status === 'signedIn' && profile.data) {
+    const complete = profile.data.profile !== null && profile.data.missingFields.length === 0;
+    return <Redirect href={complete ? '/para-ti' : '/cuestionario'} />;
+  }
+  if (status === 'signedIn' && profile.isError) {
+    // Si no se pudo leer el perfil, se intenta mostrar las oportunidades; esa
+    // pantalla ya explica el error y permite reintentar.
+    return <Redirect href="/para-ti" />;
+  }
+  return <Splash />;
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
-  content: {
-    padding: spacing.lg,
-    gap: spacing.lg,
-  },
-  navigationSection: {
-    gap: spacing.sm,
-  },
-  navButton: {
-    minHeight: minTouchTarget,
-    borderRadius: 8,
-    borderWidth: 1,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
-    justifyContent: 'center',
-  },
-  statusCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: spacing.lg,
-    gap: spacing.sm,
-  },
-  statusRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.md,
-  },
-  statusText: {
-    flex: 1,
-  },
-  button: {
-    minHeight: minTouchTarget,
-    borderRadius: 8,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonLabel: {
-    fontWeight: '600',
-  },
-});
