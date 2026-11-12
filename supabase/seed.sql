@@ -292,3 +292,151 @@ insert into public.opportunities (
   '2026-11-10T15:00:00-05:00',
   'active'
 );
+
+-- -----------------------------------------------------------------------------
+-- Subsidios y emprendimiento (curación de Carlos, decisión 0007).
+-- Datos tomados de las páginas oficiales enlazadas, leídas el 2026-11-11.
+-- Montos y condiciones según la fuente; si cambian, se actualizan aquí.
+-- Detalle y descartadas: docs/curacion/candidatas-carlos-subsidios-emprendimiento.md
+-- -----------------------------------------------------------------------------
+insert into public.opportunities (
+  title, summary_plain, category, entity_name, official_url, source_url,
+  deadline, min_age, max_age, min_education, min_experience, availability,
+  municipality_codes, modality, requirements,
+  check_official_source, check_entity_real, check_current,
+  check_requirements_complete, check_official_link,
+  verified_by, verified_at, status
+) values
+(
+  'Incentivo Sisbén en los pasajes de TransMilenio y SITP',
+  'Si tienes el Sisbén IV de Bogotá en los grupos A1 a B7, recibes un incentivo en tus pasajes de TransMilenio, TransMiCable y SITP con tu tarjeta TuLlave personalizada.',
+  'subsidy',
+  'TransMilenio S.A. - Alcaldía de Bogotá',
+  'https://www.transmilenio.gov.co/viaje-en-transmi/medios-de-pago/tarifas-del-sistema-transmilenio',
+  'https://bogota.gov.co/mi-ciudad/movilidad/descuento-en-tarifa-de-transporte-publico-por-pertenecer-al-sisben',
+  null,
+  null,
+  null,
+  null,
+  null,
+  null,
+  array['11001'],
+  'in_person',
+  array[
+    'Tener la encuesta del Sisbén IV validada en Bogotá, en los grupos A1 a B7',
+    'Personalizar tu tarjeta TuLlave con tu documento en un punto de personalización',
+    'Si no apareces en el Sisbén, solicitar la encuesta a la Secretaría Distrital de Planeación',
+    'El incentivo es personal e intransferible'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-11T23:50:00-05:00',
+  'active'
+),
+(
+  'Ahorro para mi Casa: subsidio para comprar vivienda en Bogotá',
+  'Subsidio de la Secretaría del Hábitat para ahorrar y comprar vivienda en Bogotá: hasta $13.026.733 pagados en 12 cuotas. Da prioridad a hogares cuyo jefe es una persona joven.',
+  'subsidy',
+  'Secretaría Distrital del Hábitat - Alcaldía de Bogotá',
+  'https://www.habitatbogota.gov.co/transparencia/tramites-servicios/acceso-vivienda/ahorro-para-mi-casa',
+  'https://bogota.gov.co/mi-ciudad/habitat/subsidios-de-vivienda-programa-mi-casa-en-bogota-requisitos-2026',
+  null,
+  18,
+  null,
+  null,
+  null,
+  null,
+  array['11001'],
+  'hybrid',
+  array[
+    'Ser mayor de edad (jefe o jefa de hogar)',
+    'Ingresos mensuales del hogar de hasta $3.501.810 (valor 2026)',
+    'No ser propietario de vivienda en Colombia',
+    'No haber recibido antes un subsidio de vivienda aplicado',
+    'Tener cierre financiero para la compra de la vivienda'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-11T23:50:00-05:00',
+  'active'
+),
+(
+  -- No es un subsidio en dinero sino un crédito con beneficio en la tasa; se
+  -- clasifica como subsidio porque es la categoría más cercana y el resumen
+  -- lo aclara.
+  'Generación FNA: crédito de vivienda para jóvenes',
+  'Crédito hipotecario o leasing habitacional del Fondo Nacional del Ahorro para jóvenes, con una tasa 0,5 puntos más baja que la vigente. No es un subsidio en dinero: es un crédito con beneficio.',
+  'subsidy',
+  'Fondo Nacional del Ahorro (FNA)',
+  'https://www.fna.gov.co/personas/programas/generacion-fna',
+  'https://www.fna.gov.co/personas/programas/generacion-fna',
+  null,
+  18,
+  28,
+  null,
+  null,
+  null,
+  null,
+  'hybrid',
+  array[
+    'Tener entre 18 y 28 años (hasta 28 años y 364 días al radicar el crédito)',
+    'Estar afiliado al FNA por cesantías o por Ahorro Voluntario Contractual (AVC)',
+    'Acreditar la afiliación antes de cumplir 28 años y pedir el crédito antes de cumplir 30',
+    'Aplica para crédito hipotecario y leasing habitacional'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-11T23:50:00-05:00',
+  'active'
+),
+(
+  'Ruta Ágil de Emprendimiento de la Cámara de Comercio de Bogotá',
+  'Talleres virtuales gratuitos y acompañamiento de un consultor para estructurar tu idea de negocio: modelo de negocio, costos, aspectos legales y un primer prototipo. La inscripción está abierta todo el año.',
+  'entrepreneurship',
+  'Cámara de Comercio de Bogotá',
+  'https://www.ccb.org.co/es/servicios/crea-tu-empresa/preparate-para-crear-tu-empresa/ruta-emprender',
+  'https://www.ccb.org.co/es/servicios/crea-tu-empresa/preparate-para-crear-tu-empresa/ruta-emprender',
+  null,
+  18,
+  null,
+  null,
+  'none',
+  null,
+  null,
+  'virtual',
+  array[
+    'Tener una idea de negocio que quieras estructurar',
+    'Hacer el diagnóstico para emprender en la plataforma de la CCB o llenar el formulario web de inscripción',
+    'Aceptar los términos y condiciones del programa',
+    'Dedicar entre 8 y 12 horas a las sesiones, más trabajo autónomo'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-11T23:50:00-05:00',
+  'active'
+),
+(
+  'Incubadora Futuras Startups de la Cámara de Comercio de Bogotá',
+  'Programa gratuito de tres meses para emprendimientos de base tecnológica o científica: te acompañan a construir tu producto mínimo viable y termina con un pitch day. El próximo grupo empieza en enero de 2027.',
+  'entrepreneurship',
+  'Cámara de Comercio de Bogotá',
+  'https://www.ccb.org.co/es/servicios/haz-crecer-tu-empresa/innovacion-empresarial/incubadora-de-futuras-startups',
+  'https://www.ccb.org.co/es/servicios/haz-crecer-tu-empresa/innovacion-empresarial/incubadora-de-futuras-startups',
+  null,
+  18,
+  null,
+  null,
+  'none',
+  null,
+  null,
+  'hybrid',
+  array[
+    'Tener un emprendimiento o idea de negocio de base tecnológica o científica',
+    'Estar en Bogotá o en uno de los 59 municipios de la jurisdicción de la Cámara de Comercio de Bogotá',
+    'Llenar el formulario de inscripción; no necesitas ventas previas ni registro mercantil'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-11T23:50:00-05:00',
+  'active'
+);

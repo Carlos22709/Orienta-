@@ -1,6 +1,36 @@
-# Candidatas de Carlos: subsidios y emprendimiento (borrador sin verificar)
+# Candidatas de Carlos: subsidios y emprendimiento
 
-- **Estado:** borrador. **Ninguna oportunidad de esta lista está verificada todavía.**
+## Resultado (2026-11-11)
+
+Se leyeron las páginas oficiales. Las de la CCB las abrió Carlos en su navegador, porque bloquean las lecturas automáticas. Carlos aprobó cargar las que se sostienen con su fuente.
+
+**Cargadas en `supabase/seed.sql` y en la nube (5):**
+- **Subsidios (3):**
+  - Incentivo Sisbén en TransMilenio;
+  - Ahorro para mi Casa;
+  - Generación FNA. Es un crédito con beneficio en la tasa, no un subsidio en dinero; el resumen lo aclara.
+- **Emprendimiento (2):**
+  - Ruta Ágil de Emprendimiento (CCB). La convocatoria es permanente;
+  - Incubadora Futuras Startups (CCB). El próximo grupo empieza en enero de 2027.
+
+**Pendiente:**
+- **S1, subsidio de desempleo:** el ABC del Servicio de Empleo y la ley no se pudieron abrir desde el entorno del agente. Se carga si Carlos confirma que el enlace funciona.
+
+**Descartadas tras la verificación:**
+- **E5, iNNpulsa:** la ficha oficial dice "Finalizada".
+- **E2, Maratón del 25 de noviembre:** no hay formulario de esa fecha que se pueda confirmar.
+- **E3, Ruta Emprendedora del SENA:** la página del SENA no muestra contenido y la del Fondo Emprender da 404.
+- **S4, subsidio de vivienda de la caja:** no se encontró una página oficial que se pudiera leer.
+
+**Criterio de suficiencia** (función `recommend` sobre los datos de la nube, 16 oportunidades):
+- P1, P2, P4 y P5 reciben 5 recomendaciones.
+- P3 recibe 3: 26 años, Zipaquirá, disponibilidad solo fines de semana.
+
+El resto de este documento es el borrador original de la búsqueda.
+
+---
+
+- **Estado del borrador original:** sin verificar.
 - **Responsable de la verificación:** Carlos (decisión [0007](../decisions/0007-curacion-de-oportunidades.md): subsidios y emprendimiento, 10–12 oportunidades).
 - **Búsqueda preliminar:** 2026-11-12, en fuentes públicas. La hizo el agente de código como punto de partida; las notas de prensa y blogs solo sirvieron para encontrar la fuente oficial.
 
