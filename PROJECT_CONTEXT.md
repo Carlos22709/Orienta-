@@ -197,7 +197,7 @@ Estado al 2026-11-11:
   - "Mis datos y seguridad" (`app/account/`): activación del 2FA (abrir en la app autenticadora, QR y clave copiable), descarga de los datos y eliminación de la cuenta, ambas con step-up;
   - pendiente: probar sesión, 2FA y step-up en un dispositivo (iOS y Android).
 - Nube: secretos del 2FA cargados y API con 2FA desplegada el 2026-11-11 (rutas nuevas responden 401 sin sesión). Pendiente probar el flujo completo con una sesión real desde la app.
-- Pendiente de datos: confirmar que las convocatorias reales verificadas cumplen la decisión 0007 y están cargadas en la nube.
+- Datos: 21 oportunidades reales verificadas en el seed y en la nube (empleo 5, formación 6, becas 5, subsidios 3, emprendimiento 2). Los cinco perfiles de prueba de la decisión 0007 reciben 5 recomendaciones. Subsidios y emprendimiento quedan por debajo del mínimo de 5 por categoría.
 - Matriz de accesibilidad en `docs/accessibility/matriz-trazabilidad.md`, con el estado de cada compromiso.
 
 ## 11. Decisiones técnicas

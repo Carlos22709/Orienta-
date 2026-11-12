@@ -26,6 +26,48 @@ Se leyeron las páginas oficiales. Las de la CCB las abrió Carlos en su navegad
 - P1, P2, P4 y P5 reciben 5 recomendaciones.
 - P3 recibe 3: 26 años, Zipaquirá, disponibilidad solo fines de semana.
 
+El 2026-11-12 se corrigió la regla de disponibilidad (decisión 0005, regla 5). Con eso y con las becas, **los cinco perfiles reciben 5 recomendaciones**.
+
+## Becas (2026-11-12)
+
+Carlos asumió la parte de becas del reparto de la decisión 0007. Todas se leyeron en sus páginas oficiales.
+
+**Cargadas (5):**
+- **Jóvenes a la E 6, instituciones públicas (Atenea):**
+  - apoyo de sostenimiento de hasta 1 SMMLV por periodo;
+  - para bachilleres de Bogotá admitidos en la Nacional, la Distrital, la Pedagógica, la ETITC o el SENA;
+  - cierra el 13 de noviembre de 2026.
+- **Jóvenes a la E 6, instituciones privadas (Atenea):**
+  - matrícula y apoyo de hasta 1 SMMLV;
+  - hasta 28 años;
+  - del 12 al 18 de noviembre de 2026.
+- **Matrícula Cero (MinEducación):**
+  - política permanente;
+  - el Ministerio publica dos criterios de edad distintos: su guía de 2025 dice de 14 a 28 años y un comunicado de 2024 dice que no hay límite. Se usó la guía más reciente.
+- **Crédito educativo ICETEX 2027-1:**
+  - abierto desde el 3 de noviembre de 2026;
+  - es un préstamo y el resumen lo aclara.
+- **Crédito-Beca COLFUTURO 2027:**
+  - postulaciones del 4 de enero al 4 de marzo de 2027;
+  - exige título de pregrado.
+
+**Descartadas:**
+- **Becas Aliados de la Universidad de La Sabana:** son de posgrado, solo para Sopó, Tenjo y Zipaquirá, y la lista de postulados ya se envió el 2 de noviembre.
+- **Becas 2027-1 de Zipaquirá:** cerraron el 29 de octubre.
+- **Fulbright:** no hay convocatoria de maestría abierta.
+
+**Cobertura en la nube (21 oportunidades):**
+
+| Categoría | Oportunidades | Mínimo de la decisión 0007 |
+|---|---|---|
+| Empleo | 5 | Cumple |
+| Formación | 6 | Cumple |
+| Becas | 5 | Cumple |
+| Subsidios | 3 | No cumple (mínimo 5) |
+| Emprendimiento | 2 | No cumple (mínimo 5) |
+
+Subsidios y emprendimiento quedan por debajo del mínimo de 5, pero el criterio de suficiencia se cumple.
+
 El resto de este documento es el borrador original de la búsqueda.
 
 ---

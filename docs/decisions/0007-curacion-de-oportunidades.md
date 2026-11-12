@@ -26,6 +26,14 @@ Cada integrante cura y verifica **un tercio** (10–12 oportunidades) y hace com
 | Carlos | Subsidios y emprendimiento |
 | Juan | Empleo y formación |
 
+**Estado al 2026-11-12:**
+- Hay 21 oportunidades cargadas en `supabase/seed.sql` y en la nube.
+  - Juan: 11 (empleo y formación).
+  - Carlos: 10 (subsidios, emprendimiento y becas). Carlos asumió las becas, que estaban sugeridas para Laura.
+- Subsidios (3) y emprendimiento (2) quedan por debajo del mínimo de 5 por categoría: varias convocatorias de 2026 ya cerraron y otras no tenían una página oficial legible.
+- El criterio de suficiencia sí se cumple: los cinco perfiles de prueba reciben 5 recomendaciones.
+- El detalle, las fuentes y las descartadas están en [`docs/curacion/candidatas-carlos-subsidios-emprendimiento.md`](../curacion/candidatas-carlos-subsidios-emprendimiento.md).
+
 ### Lista de chequeo por oportunidad (Fase 1, sección III-C)
 
 Se registra en las columnas `check_*` de la tabla `opportunities`:
