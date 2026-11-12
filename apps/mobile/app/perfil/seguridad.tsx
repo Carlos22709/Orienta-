@@ -25,7 +25,7 @@ import {
   useStartMfaEnrollmentMutation,
 } from '../../src/store/api';
 import { selectAuthStatus } from '../../src/store/authSlice';
-import { fonts, minTouchTarget, spacing, typography } from '../../src/theme/tokens';
+import { fonts, minTouchTarget, scaled, spacing, typography } from '../../src/theme/tokens';
 import { BackButton } from '../../src/ui/layout';
 import { notifyError, notifySuccess } from '../../src/ui/feedback';
 import { useTheme } from '../../src/theme/useTheme';
@@ -192,7 +192,7 @@ export default function TwoFactorScreen() {
               <Text
                 selectable
                 accessibilityLabel={`Clave: ${enrollment.secret.split('').join(' ')}`}
-                style={[styles.secret, { color: colors.text, borderColor: colors.border }]}
+                style={[styles.secret, { color: colors.text, borderColor: colors.border, fontSize: scaled(20), lineHeight: scaled(30) }]}
               >
                 {formatSecretForReading(enrollment.secret)}
               </Text>

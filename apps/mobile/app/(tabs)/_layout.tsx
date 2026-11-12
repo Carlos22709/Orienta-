@@ -3,7 +3,7 @@ import { Redirect, Tabs } from 'expo-router';
 import React from 'react';
 import { useAppSelector } from '../../src/store';
 import { selectAuthStatus } from '../../src/store/authSlice';
-import { fonts } from '../../src/theme/tokens';
+import { fonts, scaled } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/useTheme';
 
 type IconName = React.ComponentProps<typeof Ionicons>['name'];
@@ -35,7 +35,7 @@ export default function TabsLayout() {
           borderTopColor: colors.divider,
           minHeight: 60,
         },
-        tabBarLabelStyle: { fontFamily: fonts.bold, fontSize: 12 },
+        tabBarLabelStyle: { fontFamily: fonts.bold, fontSize: scaled(12) },
         sceneStyle: { backgroundColor: colors.background },
       }}
     >

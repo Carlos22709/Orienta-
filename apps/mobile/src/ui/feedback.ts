@@ -9,9 +9,17 @@ import { AccessibilityInfo } from 'react-native';
  * - auditivo: el anuncio del lector de pantalla;
  * - táctil: una vibración breve, útil con el teléfono en silencio.
  *
- * La vibración es un refuerzo: si el dispositivo no la soporta, se ignora.
+ * La vibración es un refuerzo: si el dispositivo no la soporta, se ignora, y
+ * la persona puede apagarla en Accesibilidad (setHapticsEnabled).
  */
+let hapticsEnabled = true;
+
+export function setHapticsEnabled(enabled: boolean): void {
+  hapticsEnabled = enabled;
+}
+
 function vibrate(run: () => Promise<void>) {
+  if (!hapticsEnabled) return;
   run().catch(() => {
     // Sin motor háptico (por ejemplo, en un emulador): no pasa nada.
   });

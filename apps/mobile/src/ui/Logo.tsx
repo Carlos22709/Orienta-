@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { fonts } from '../theme/tokens';
+import { fonts, scaled } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 interface LogoMarkProps {
@@ -38,7 +38,7 @@ export function Wordmark({ size = 30 }: { size?: number }) {
   return (
     <Text
       accessibilityRole="header"
-      style={[styles.wordmark, { fontSize: size, lineHeight: size * 1.25, color: colors.text }]}
+      style={[styles.wordmark, { fontSize: scaled(size), lineHeight: scaled(size * 1.25), color: colors.text }]}
     >
       Orienta<Text style={{ color: colors.primary }}>+</Text>
     </Text>

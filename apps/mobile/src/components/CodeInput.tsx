@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
-import { minTouchTarget, spacing, typography } from '../theme/tokens';
+import { minTouchTarget, scaled, spacing, typography } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 import { notifyError } from '../ui/feedback';
 
@@ -64,6 +64,7 @@ export function CodeInput({
             color: colors.text,
             backgroundColor: colors.background,
             borderColor: error ? colors.danger : colors.border,
+            fontSize: scaled(24),
           },
         ]}
       />

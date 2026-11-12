@@ -13,7 +13,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { restoreSessionOnLaunch } from '../src/auth/actions';
 import { loadSaved, persistSaved } from '../src/saved/persistence';
-import { store, useAppDispatch } from '../src/store';
+import { loadSettings, persistSettings } from '../src/settings/persistence';
+import { store, useAppDispatch, useAppSelector } from '../src/store';
+import { selectSettings } from '../src/store/settingsSlice';
+import { applyTextScale } from '../src/theme/tokens';
+import { setHapticsEnabled } from '../src/ui/feedback';
 import { useTheme } from '../src/theme/useTheme';
 
 /** Layout raíz: store de Redux, área segura y tipografía Nunito. */
@@ -30,6 +34,12 @@ export default function RootLayout() {
 function ThemedStack() {
   const { colors, scheme } = useTheme();
   const dispatch = useAppDispatch();
+  const settings = useAppSelector(selectSettings);
+
+  // Ajustes de accesibilidad: se aplican antes de dibujar las pantallas, para
+  // que todas usen el tamaño de texto y la vibración elegidos.
+  applyTextScale(settings.textScale);
+  setHapticsEnabled(settings.haptics);
   const [fontsLoaded] = useFonts({
     Nunito_400Regular,
     Nunito_600SemiBold,
@@ -42,10 +52,16 @@ function ThemedStack() {
     // lista de guardadas del teléfono.
     void dispatch(restoreSessionOnLaunch());
     void loadSaved(dispatch);
-    return persistSaved(store);
+    void loadSettings(dispatch);
+    const stopSaved = persistSaved(store);
+    const stopSettings = persistSettings(store);
+    return () => {
+      stopSaved();
+      stopSettings();
+    };
   }, [dispatch]);
 
-  if (!fontsLoaded) {
+  if (!fontsLoaded || !settings.hydrated) {
     return <View style={{ flex: 1, backgroundColor: colors.background }} />;
   }
 

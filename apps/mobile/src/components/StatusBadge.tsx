@@ -25,6 +25,7 @@ export interface StatusBadgeProps {
  */
 export function StatusBadge({ validity }: StatusBadgeProps) {
   const { colors } = useTheme();
+  const styles = createStyles();
   const visual = getStatusBadgeVisual(validity, colors);
 
   return (
@@ -46,7 +47,9 @@ export function StatusBadge({ validity }: StatusBadgeProps) {
   );
 }
 
-const styles = StyleSheet.create({
+// Se crean en cada render para usar el tamaño de texto vigente (Accesibilidad).
+const createStyles = () =>
+  StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
     flexDirection: 'row',

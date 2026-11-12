@@ -30,6 +30,7 @@ export function ErrorState({
   isRetrying = false,
 }: ErrorStateProps) {
   const { colors } = useTheme();
+  const styles = createStyles();
 
   useEffect(() => {
     AccessibilityInfo.announceForAccessibility(`${title}. ${message}`);
@@ -81,7 +82,9 @@ export function ErrorState({
   );
 }
 
-const styles = StyleSheet.create({
+// Se crean en cada render para usar el tamaño de texto vigente (Accesibilidad).
+const createStyles = () =>
+  StyleSheet.create({
   container: {
     alignItems: 'center',
     borderRadius: 12,

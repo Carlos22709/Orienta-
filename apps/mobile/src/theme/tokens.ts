@@ -112,8 +112,10 @@ export const fonts = {
   extrabold: 'Nunito_800ExtraBold',
 } as const;
 
+type TextStyleToken = { fontSize: number; lineHeight: number; fontFamily: string };
+
 /** Tamaños base; lineHeight ≈ 1.5× en cuerpo y 1.25× en títulos para evitar recortes. */
-export const typography = {
+export const BASE_TYPOGRAPHY = {
   display: { fontSize: 30, lineHeight: 38, fontFamily: fonts.extrabold },
   screenTitle: { fontSize: 26, lineHeight: 33, fontFamily: fonts.extrabold },
   cardTitle: { fontSize: 18, lineHeight: 24, fontFamily: fonts.bold },
@@ -122,6 +124,52 @@ export const typography = {
   secondary: { fontSize: 14, lineHeight: 21, fontFamily: fonts.regular },
   label: { fontSize: 13, lineHeight: 18, fontFamily: fonts.bold },
 } as const;
+
+type TypographyKey = keyof typeof BASE_TYPOGRAPHY;
+
+/** Límites del tamaño de texto que la persona puede elegir en Accesibilidad. */
+export const TEXT_SCALE = { min: 0.85, max: 1.6, step: 0.05, default: 1 } as const;
+
+/** Ajusta un valor al rango permitido y a pasos de 5 %. */
+export function clampTextScale(value: number): number {
+  const stepped = Math.round(value / TEXT_SCALE.step) * TEXT_SCALE.step;
+  return Math.min(TEXT_SCALE.max, Math.max(TEXT_SCALE.min, Number(stepped.toFixed(2))));
+}
+
+/** Tipografía con tamaño y lineHeight multiplicados (redondeados a enteros). */
+export function scaleTypography(scale: number): Record<TypographyKey, TextStyleToken> {
+  const result = {} as Record<TypographyKey, TextStyleToken>;
+  for (const key of Object.keys(BASE_TYPOGRAPHY) as TypographyKey[]) {
+    const base = BASE_TYPOGRAPHY[key];
+    result[key] = {
+      fontFamily: base.fontFamily,
+      fontSize: Math.round(base.fontSize * scale),
+      lineHeight: Math.round(base.lineHeight * scale),
+    };
+  }
+  return result;
+}
+
+/**
+ * Tipografía vigente. Se recalcula cuando la persona cambia el tamaño en
+ * Accesibilidad (applyTextScale); las pantallas se vuelven a dibujar porque
+ * useTheme() depende de ese ajuste. Se suma al tamaño de letra del sistema,
+ * que React Native sigue aplicando.
+ */
+export const typography: Record<TypographyKey, TextStyleToken> = scaleTypography(TEXT_SCALE.default);
+let currentScale: number = TEXT_SCALE.default;
+
+export function applyTextScale(scale: number): void {
+  const next = clampTextScale(scale);
+  if (next === currentScale) return;
+  currentScale = next;
+  Object.assign(typography, scaleTypography(next));
+}
+
+/** Escala vigente, para los pocos tamaños que no salen de typography. */
+export function scaled(size: number): number {
+  return Math.round(size * currentScale);
+}
 
 /** Sombra suave para tarjetas (iOS) y elevación equivalente (Android). */
 export function cardShadow(color: string) {
