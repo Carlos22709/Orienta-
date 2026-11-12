@@ -2,16 +2,16 @@ import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { api } from './api';
 import { authSlice } from './authSlice';
+import { stepUpSlice } from './stepUpSlice';
 
 /**
  * Store global de Orienta+ (decisión 0003).
  *
  * - auth: sesión en memoria (access_token, persona, estado).
+ * - stepUp: elevated_token del step-up, solo en memoria.
  * - api: caché de RTK Query.
- *
- * El stepUpSlice se agrega con las pantallas de verificación en dos pasos.
  */
-const rootReducer = combineSlices(authSlice, api);
+const rootReducer = combineSlices(authSlice, stepUpSlice, api);
 
 export const store = configureStore({
   reducer: rootReducer,

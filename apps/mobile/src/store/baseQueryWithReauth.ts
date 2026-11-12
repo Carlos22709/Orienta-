@@ -8,6 +8,7 @@ import {
 import type { RefreshOutcome } from '../auth/session';
 import { singleFlight } from '../auth/singleFlight';
 import type { AuthState } from './authSlice';
+import { type StepUpState, validElevatedToken } from './stepUpSlice';
 
 export interface ReauthOptions {
   baseUrl: string;
@@ -15,7 +16,15 @@ export interface ReauthOptions {
   fetchFn?: typeof fetch;
   /** Renueva la sesión y actualiza el store. Se llama una vez por ráfaga de 401. */
   refresh: (api: BaseQueryApi) => Promise<RefreshOutcome>;
+  /**
+   * Endpoints de acciones críticas: solo a estos se les envía el
+   * elevated_token vigente en X-Elevated-Token (decisión 0002, sección 5).
+   */
+  elevatedEndpoints?: readonly string[];
+  now?: () => number;
 }
+
+type ReauthState = { auth: AuthState; stepUp?: StepUpState };
 
 function accessTokenOf(api: BaseQueryApi): string | null {
   return (api.getState() as { auth: AuthState }).auth.accessToken;
@@ -36,15 +45,24 @@ export function createBaseQueryWithReauth({
   timeout,
   fetchFn,
   refresh,
+  elevatedEndpoints = [],
+  now = Date.now,
 }: ReauthOptions): BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError> {
   const rawBaseQuery = fetchBaseQuery({
     baseUrl,
     timeout,
     fetchFn,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as { auth: AuthState }).auth.accessToken;
+    prepareHeaders: (headers, { getState, endpoint }) => {
+      const state = getState() as ReauthState;
+      const token = state.auth.accessToken;
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
+      }
+      const elevated = elevatedEndpoints.includes(endpoint)
+        ? validElevatedToken(state.stepUp, now())
+        : null;
+      if (elevated) {
+        headers.set('X-Elevated-Token', elevated);
       }
       return headers;
     },

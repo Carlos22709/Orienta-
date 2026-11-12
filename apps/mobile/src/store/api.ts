@@ -108,6 +108,37 @@ export const profileResponseSchema = z.object({
 });
 export type ProfileResponse = z.infer<typeof profileResponseSchema>;
 
+/** Contrato de GET /api/mfa/status. */
+export const mfaStatusSchema = z.object({ enrolled: z.boolean() });
+export type MfaStatus = z.infer<typeof mfaStatusSchema>;
+
+/**
+ * Contrato de POST /api/mfa/enroll. La semilla se entrega una sola vez y la
+ * app la guarda solo en el estado de la pantalla, nunca en Redux ni en disco.
+ */
+export const mfaEnrollmentSchema = z.object({
+  otpauthUri: z.string().startsWith('otpauth://totp/'),
+  secret: z.string().min(16),
+});
+export type MfaEnrollment = z.infer<typeof mfaEnrollmentSchema>;
+
+/** Contrato de POST /api/mfa/verify. */
+export const elevationSchema = z.object({
+  elevatedToken: z.string().min(1),
+  expiresAt: z.string(),
+});
+export type Elevation = z.infer<typeof elevationSchema>;
+
+/** Contrato de GET /api/me/data-export (se conserva todo lo que llegue). */
+export const dataExportSchema = z.looseObject({ exportedAt: z.string() });
+export type DataExport = z.infer<typeof dataExportSchema>;
+
+/**
+ * Acciones críticas: solo a estos endpoints se les envía X-Elevated-Token
+ * (decisión 0002, sección 5).
+ */
+export const ELEVATED_ENDPOINTS = ['exportMyData', 'deleteAccount'] as const;
+
 /** Tiempo máximo de espera por petición antes de mostrar el estado de error. */
 const REQUEST_TIMEOUT_MS = 10_000;
 
@@ -120,11 +151,12 @@ const REQUEST_TIMEOUT_MS = 10_000;
  */
 export const api = createApi({
   reducerPath: 'api',
-  tagTypes: ['Health', 'Recommendations', 'Opportunity', 'Profile'],
+  tagTypes: ['Health', 'Recommendations', 'Opportunity', 'Profile', 'Mfa'],
   baseQuery: createBaseQueryWithReauth({
     baseUrl: env.apiUrl ?? '',
     timeout: REQUEST_TIMEOUT_MS,
     refresh: ({ dispatch }) => refreshStoredSession(sessionDeps, dispatch),
+    elevatedEndpoints: ELEVATED_ENDPOINTS,
   }),
   endpoints: (build) => ({
     getHealth: build.query<HealthResponse, void>({
@@ -160,6 +192,35 @@ export const api = createApi({
       transformResponse: (response: unknown) => profileResponseSchema.parse(response),
       invalidatesTags: ['Profile', 'Recommendations'],
     }),
+
+    // Verificación en dos pasos (decisión 0002, sección 4).
+    getMfaStatus: build.query<MfaStatus, void>({
+      query: () => 'mfa/status',
+      transformResponse: (response: unknown) => mfaStatusSchema.parse(response),
+      providesTags: ['Mfa'],
+    }),
+    startMfaEnrollment: build.mutation<MfaEnrollment, void>({
+      query: () => ({ url: 'mfa/enroll', method: 'POST', body: {} }),
+      transformResponse: (response: unknown) => mfaEnrollmentSchema.parse(response),
+    }),
+    confirmMfaEnrollment: build.mutation<MfaStatus, { code: string }>({
+      query: (body) => ({ url: 'mfa/enroll/confirm', method: 'POST', body }),
+      transformResponse: (response: unknown) => mfaStatusSchema.parse(response),
+      invalidatesTags: ['Mfa'],
+    }),
+    verifyStepUp: build.mutation<Elevation, { stepUpToken: string; code: string }>({
+      query: (body) => ({ url: 'mfa/verify', method: 'POST', body }),
+      transformResponse: (response: unknown) => elevationSchema.parse(response),
+    }),
+
+    // Derechos de la Ley 1581 sobre los propios datos: exigen step-up.
+    exportMyData: build.mutation<DataExport, void>({
+      query: () => ({ url: 'me/data-export', method: 'GET' }),
+      transformResponse: (response: unknown) => dataExportSchema.parse(response),
+    }),
+    deleteAccount: build.mutation<null, void>({
+      query: () => ({ url: 'me', method: 'DELETE' }),
+    }),
   }),
 });
 
@@ -170,4 +231,10 @@ export const {
   useGetCatalogQuery,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useGetMfaStatusQuery,
+  useStartMfaEnrollmentMutation,
+  useConfirmMfaEnrollmentMutation,
+  useVerifyStepUpMutation,
+  useExportMyDataMutation,
+  useDeleteAccountMutation,
 } = api;
