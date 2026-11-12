@@ -120,12 +120,15 @@ Flujo:
 - Hay más código de seguridad que probar. Las funciones de PKCE, TOTP y Base32 deben tener pruebas unitarias con vectores conocidos.
 - Se necesita un cliente OAuth en Google Cloud y configurar el proveedor en Supabase. Son operaciones externas a cargo del equipo.
 - En Expo Go la URL de redirección incluye la IP local y cambia entre redes. En desarrollo se usa un comodín en la lista de redirecciones de Supabase; en la demo se verifica antes de presentar.
+  - **Comprobado el 2026-11-12:** Supabase Auth rechaza cualquier `redirect_to` cuyo host sea una dirección IP distinta de la de loopback, y lo hace antes de consultar la lista de redirecciones (`IsRedirectURLValid` en `internal/utilities/request.go` del repositorio `supabase/auth`). En ese caso usa la *Site URL*, y en el teléfono aparece "couldn't connect to the server".
+  - Por eso el inicio de sesión se prueba con `npx expo start --tunnel`: la URL usa un nombre de host (`exp://…exp.direct/--/auth/callback`) que sí coincide con `exp://**`.
 - No se cumple literalmente el punto del laboratorio sobre un esquema de URL propio (`orientaplus://`), porque Expo Go no lo permite. Si se necesita, se requiere un development build (ver [0004](0004-alcance-del-mvp.md)).
 
 ## Por validar (pruebas técnicas antes de implementar)
 
 1. Que Supabase Auth acepte `code_challenge` y `code_challenge_method` en `/auth/v1/authorize?provider=google` y canjee el código con `/auth/v1/token?grant_type=pkce` cuando el cliente no usa `supabase-js`.
 2. Que el parámetro `state` propio sobreviva en la URL de `redirect_to` hasta la app.
+   - **Validado en parte (2026-11-12):** Supabase guarda el `redirect_to` con su query (`?state=…`) intacto en `auth.flow_state.referrer`. Falta confirmarlo de punta a punta en el dispositivo.
 3. El valor mínimo configurable de expiración del JWT y si el límite de 30 días para la sesión está disponible en el plan de Supabase que se use. Si no lo está, se documenta la diferencia.
 4. Que HMAC-SHA1 y AES-GCM de Web Crypto estén disponibles en el runtime de Edge Functions.
 5. Cómo validar el `access_token` de Supabase dentro de la función (JWKS o endpoint de usuario de Supabase Auth).
