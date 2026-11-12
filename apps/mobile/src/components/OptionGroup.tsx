@@ -102,12 +102,10 @@ export function OptionGroup({
       </View>
 
       {error && (
-        <Text
-          accessibilityLiveRegion="polite"
-          style={[typography.label, { color: colors.danger }]}
-        >
-          ⚠ {error}
-        </Text>
+        <View accessibilityLiveRegion="polite" style={styles.error}>
+          <Ionicons name="alert-circle" size={18} color={colors.danger} />
+          <Text style={[typography.label, styles.optionLabel, { color: colors.danger }]}>{error}</Text>
+        </View>
       )}
     </View>
   );
@@ -132,4 +130,5 @@ const styles = StyleSheet.create({
   optionLabel: {
     flex: 1,
   },
+  error: { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
 });

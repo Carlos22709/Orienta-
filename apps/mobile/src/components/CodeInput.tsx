@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, TextInput, View } from 'react-native';
 import { minTouchTarget, spacing, typography } from '../theme/tokens';
@@ -66,7 +67,10 @@ export function CodeInput({
         ]}
       />
       {error ? (
-        <Text style={[typography.secondary, { color: colors.danger }]}>⚠ {error}</Text>
+        <View style={styles.error}>
+          <Ionicons name="alert-circle" size={18} color={colors.danger} />
+          <Text style={[typography.secondary, styles.errorText, { color: colors.danger }]}>{error}</Text>
+        </View>
       ) : null}
     </View>
   );
@@ -76,6 +80,8 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing.xs,
   },
+  error: { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
+  errorText: { flex: 1 },
   label: {
     fontWeight: '600',
   },

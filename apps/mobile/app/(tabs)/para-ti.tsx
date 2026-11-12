@@ -33,7 +33,7 @@ export default function ForYouScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Text style={[typography.secondary, { color: colors.textMuted }]}>{greeting()} 👋</Text>
+      <Text style={[typography.secondary, { color: colors.textMuted }]}>{greeting()}</Text>
       <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.text }]}>
         {data ? `Tus ${data.items.length} oportunidades` : 'Tus oportunidades'}
       </Text>

@@ -139,7 +139,7 @@ export default function TwoFactorScreen() {
 
         {alreadyActive ? (
           <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.success }]}>
-            <Text style={[typography.cardTitle, { color: colors.text }]}>✓ Está activa</Text>
+            <Text style={[typography.cardTitle, { color: colors.text }]}>Está activa</Text>
             <Text style={[typography.body, { color: colors.text }]}>
               Antes de descargar o eliminar tus datos te pediremos el código de tu app
               autenticadora.

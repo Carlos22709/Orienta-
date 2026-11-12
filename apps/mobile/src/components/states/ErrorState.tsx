@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import {
   AccessibilityInfo,
@@ -47,7 +48,7 @@ export function ErrorState({
         },
       ]}
     >
-      <Text style={[styles.icon, { color: colors.danger }]}>⚠</Text>
+      <Ionicons name="alert-circle" size={40} color={colors.danger} />
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
 

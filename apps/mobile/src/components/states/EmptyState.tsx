@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import React, { useEffect } from 'react';
 import { AccessibilityInfo, Pressable, StyleSheet, Text, View } from 'react-native';
 import { minTouchTarget, spacing, typography } from '../../theme/tokens';
@@ -8,7 +9,7 @@ export interface EmptyStateProps {
   message: string;
   actionLabel?: string;
   onAction?: () => void;
-  icon?: string;
+  icon?: React.ComponentProps<typeof Ionicons>['name'];
 }
 
 /**
@@ -21,7 +22,7 @@ export function EmptyState({
   message,
   actionLabel,
   onAction,
-  icon = '🔍',
+  icon = 'search',
 }: EmptyStateProps) {
   const { colors } = useTheme();
 
@@ -36,7 +37,7 @@ export function EmptyState({
       accessibilityLabel={`${title}. ${message}`}
       style={[styles.container, { backgroundColor: colors.surface }]}
     >
-      <Text style={styles.icon}>{icon}</Text>
+      <Ionicons name={icon} size={40} color={colors.primary} />
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
       <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
 

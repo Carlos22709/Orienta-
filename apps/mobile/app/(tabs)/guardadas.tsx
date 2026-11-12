@@ -21,7 +21,7 @@ function shortDate(value: string): string {
   });
 }
 
-/** Guardadas: las oportunidades marcadas con ♡, guardadas en este teléfono. */
+/** Guardadas: las oportunidades marcadas con el corazón, guardadas en este teléfono. */
 export default function SavedScreen() {
   const { colors, categories } = useTheme();
   const router = useRouter();
@@ -39,7 +39,7 @@ export default function SavedScreen() {
               Guardadas
             </Text>
             <Text style={[typography.body, { color: colors.textMuted }]}>
-              Las oportunidades que marcaste con ♡ para revisar después.
+              Las oportunidades que guardaste para revisar después.
             </Text>
           </View>
         }
@@ -52,7 +52,7 @@ export default function SavedScreen() {
               Aún no guardas ninguna
             </Text>
             <Text style={[typography.body, styles.center, { color: colors.textMuted }]}>
-              Toca el ♡ en una oportunidad para tenerla a mano aquí.
+              Toca el corazón de una oportunidad para tenerla a mano aquí.
             </Text>
             <Button label="Explorar oportunidades" variant="secondary" onPress={() => router.push('/explorar')} />
           </View>

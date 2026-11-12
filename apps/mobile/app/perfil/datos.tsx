@@ -130,9 +130,9 @@ export default function AccountScreen() {
             {mfaStatus.isLoading
               ? 'Consultando…'
               : mfaStatus.isError
-                ? '⚠ No pudimos consultar el estado. Revisa tu conexión.'
+                ? 'No pudimos consultar el estado. Revisa tu conexión.'
                 : enrolled
-                  ? '✓ Activa. Te pediremos un código antes de descargar o eliminar tus datos.'
+                  ? 'Activa. Te pediremos un código antes de descargar o eliminar tus datos.'
                   : 'Inactiva. Actívala para poder descargar o eliminar tus datos de forma segura.'}
           </Text>
           {!enrolled && !mfaStatus.isLoading && (
@@ -174,7 +174,7 @@ export default function AccountScreen() {
           {confirmingDelete ? (
             <>
               <Text style={[typography.body, styles.strong, { color: colors.danger }]}>
-                ⚠ ¿Seguro que quieres eliminar tu cuenta y todos tus datos?
+                ¿Seguro que quieres eliminar tu cuenta y todos tus datos?
               </Text>
               <DangerButton
                 label={busyDelete ? 'Eliminando…' : 'Sí, eliminar mi cuenta'}

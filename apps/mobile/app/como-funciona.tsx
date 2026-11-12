@@ -56,7 +56,7 @@ export default function HowItWorksScreen() {
         <Text style={[typography.bodyStrong, { color: colors.text }]}>Tus datos son tuyos</Text>
         <Text style={[typography.body, { color: colors.text }]}>
           Según la Ley 1581 de 2012, puedes descargar o eliminar tus datos cuando quieras desde
-          Perfil → Mis datos y privacidad.
+          Perfil, en Mis datos y privacidad.
         </Text>
       </Card>
     </Screen>
