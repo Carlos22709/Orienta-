@@ -29,3 +29,6 @@ yarn-error.*
 .DS_Store
 Thumbs.db
 .idea/
+
+# Bocetos locales del asistente (no se versionan)
+.superpowers/
