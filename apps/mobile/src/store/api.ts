@@ -4,6 +4,7 @@ import { refreshStoredSession } from '../auth/session';
 import { sessionDeps } from '../auth/sessionDeps';
 import { env } from '../config/env';
 import type { ProfileUpdate } from '../profile/profileForm';
+import { addSaved, removeSaved } from '../saved/savedList';
 import { createBaseQueryWithReauth } from './baseQueryWithReauth';
 
 /** Contrato de GET /api/health (ver docs/architecture/diseno-backend.md). */
@@ -122,6 +123,25 @@ export const viewsResponseSchema = z.object({
 });
 export type ViewedOpportunity = z.infer<typeof viewsResponseSchema>['items'][number];
 
+/**
+ * Contrato de GET /api/me/saved: oportunidades guardadas con el ♡, la más
+ * reciente primero. Viven en el servidor, así que siguen a la persona al
+ * cerrar sesión o cambiar de teléfono.
+ */
+export const savedItemSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  category: z.string(),
+  entityName: z.string(),
+  deadline: z.string().nullable(),
+  validity: validitySchema,
+  savedAt: z.string(),
+});
+export type SavedItem = z.infer<typeof savedItemSchema>;
+/** Lo que necesita el ♡ para guardar una oportunidad (savedAt lo pone el servidor). */
+export type SavedItemInput = Omit<SavedItem, 'savedAt'>;
+export const savedListSchema = z.object({ items: z.array(savedItemSchema) });
+
 /** Contrato de GET /api/mfa/status. */
 export const mfaStatusSchema = z.object({ enrolled: z.boolean() });
 export type MfaStatus = z.infer<typeof mfaStatusSchema>;
@@ -165,7 +185,7 @@ const REQUEST_TIMEOUT_MS = 10_000;
  */
 export const api = createApi({
   reducerPath: 'api',
-  tagTypes: ['Health', 'Recommendations', 'Opportunity', 'Profile', 'Mfa'],
+  tagTypes: ['Health', 'Recommendations', 'Opportunity', 'Profile', 'Mfa', 'Saved'],
   baseQuery: createBaseQueryWithReauth({
     baseUrl: env.apiUrl ?? '',
     timeout: REQUEST_TIMEOUT_MS,
@@ -217,6 +237,43 @@ export const api = createApi({
       transformResponse: (response: unknown) => viewsResponseSchema.parse(response).items,
     }),
 
+    // Guardadas (♡). El corazón cambia al instante: se edita la caché de
+    // getSaved antes de que responda el servidor y, si la petición falla,
+    // patch.undo() deja la lista como estaba.
+    getSaved: build.query<SavedItem[], void>({
+      query: () => 'me/saved',
+      transformResponse: (response: unknown) => savedListSchema.parse(response).items,
+      providesTags: ['Saved'],
+    }),
+    saveOpportunity: build.mutation<null, SavedItemInput>({
+      query: ({ id }) => ({ url: `me/saved/${encodeURIComponent(id)}`, method: 'PUT' }),
+      async onQueryStarted(item, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          api.util.updateQueryData('getSaved', undefined, (list) =>
+            addSaved(list, item, new Date().toISOString()),
+          ),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+    unsaveOpportunity: build.mutation<null, string>({
+      query: (id) => ({ url: `me/saved/${encodeURIComponent(id)}`, method: 'DELETE' }),
+      async onQueryStarted(id, { dispatch, queryFulfilled }) {
+        const patch = dispatch(
+          api.util.updateQueryData('getSaved', undefined, (list) => removeSaved(list, id)),
+        );
+        try {
+          await queryFulfilled;
+        } catch {
+          patch.undo();
+        }
+      },
+    }),
+
     // Verificación en dos pasos (decisión 0002, sección 4).
     getMfaStatus: build.query<MfaStatus, void>({
       query: () => 'mfa/status',
@@ -257,6 +314,9 @@ export const {
   useGetProfileQuery,
   useUpdateProfileMutation,
   useGetMyViewsQuery,
+  useGetSavedQuery,
+  useSaveOpportunityMutation,
+  useUnsaveOpportunityMutation,
   useGetMfaStatusQuery,
   useStartMfaEnrollmentMutation,
   useConfirmMfaEnrollmentMutation,

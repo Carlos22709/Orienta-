@@ -4,8 +4,9 @@ import React from 'react';
 import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SaveButton } from '../../src/components/SaveButton';
-import { useAppSelector } from '../../src/store';
-import { selectSavedItems } from '../../src/store/savedSlice';
+import { ErrorState } from '../../src/components/states/ErrorState';
+import { LoadingState } from '../../src/components/states/LoadingState';
+import { type SavedItem, useGetSavedQuery } from '../../src/store/api';
 import { radius, spacing, typography } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/useTheme';
 import { Button } from '../../src/ui/Button';
@@ -21,11 +22,22 @@ function shortDate(value: string): string {
   });
 }
 
-/** Guardadas: las oportunidades marcadas con el corazón, guardadas en este teléfono. */
+/** "cierra el 15 de diciembre", "ya cerró" o null si es abierta sin fecha. */
+function closingText(item: SavedItem): string | null {
+  if (item.validity.kind === 'closed') return 'ya cerró';
+  return item.deadline ? `cierra el ${shortDate(item.deadline)}` : null;
+}
+
+/**
+ * Guardadas: las oportunidades marcadas con el corazón. Se guardan en el
+ * servidor (GET /api/me/saved), así que siguen ahí al cerrar sesión o al
+ * entrar desde otro teléfono; solo se borran al eliminar la cuenta.
+ */
 export default function SavedScreen() {
   const { colors, categories } = useTheme();
   const router = useRouter();
-  const items = useAppSelector(selectSavedItems);
+  const { data, isLoading, isError, isFetching, refetch } = useGetSavedQuery();
+  const items = data ?? [];
 
   return (
     <SafeAreaView edges={['top']} style={[styles.flex, { backgroundColor: colors.background }]}>
@@ -33,6 +45,10 @@ export default function SavedScreen() {
         data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={[styles.list, items.length === 0 && styles.flexGrow]}
+        // Deslizar hacia abajo vuelve a pedir la lista (por ejemplo, si se
+        // guardó algo desde otro teléfono).
+        refreshing={isFetching && !isLoading}
+        onRefresh={refetch}
         ListHeaderComponent={
           <View style={styles.header}>
             <Text accessibilityRole="header" style={[typography.screenTitle, { color: colors.text }]}>
@@ -44,29 +60,36 @@ export default function SavedScreen() {
           </View>
         }
         ListEmptyComponent={
-          <View style={styles.empty}>
-            <View style={[styles.emptyIcon, { backgroundColor: colors.chip }]}>
-              <Ionicons name="heart-outline" size={40} color={colors.accent} />
+          isLoading ? (
+            <LoadingState message="Cargando…" accessibilityLabel="Cargando tus guardadas" />
+          ) : isError ? (
+            <ErrorState onRetry={refetch} isRetrying={isFetching} />
+          ) : (
+            <View style={styles.empty}>
+              <View style={[styles.emptyIcon, { backgroundColor: colors.chip }]}>
+                <Ionicons name="heart-outline" size={40} color={colors.accent} />
+              </View>
+              <Text style={[typography.cardTitle, styles.center, { color: colors.text }]}>
+                Aún no guardas ninguna
+              </Text>
+              <Text style={[typography.body, styles.center, { color: colors.textMuted }]}>
+                Toca el corazón de una oportunidad para tenerla a mano aquí.
+              </Text>
+              <Button label="Explorar oportunidades" variant="secondary" onPress={() => router.push('/explorar')} />
             </View>
-            <Text style={[typography.cardTitle, styles.center, { color: colors.text }]}>
-              Aún no guardas ninguna
-            </Text>
-            <Text style={[typography.body, styles.center, { color: colors.textMuted }]}>
-              Toca el corazón de una oportunidad para tenerla a mano aquí.
-            </Text>
-            <Button label="Explorar oportunidades" variant="secondary" onPress={() => router.push('/explorar')} />
-          </View>
+          )
         }
         ItemSeparatorComponent={() => <View style={{ height: spacing.md }} />}
         renderItem={({ item }) => {
           const meta = categoryMeta(item.category);
+          const closing = closingText(item);
           const tone = isCategoryKey(item.category) ? categories[item.category] : colors.chip;
           return (
             <View style={styles.row}>
               <Card
                 style={styles.flex}
                 onPress={() => router.push({ pathname: '/oportunidad/[id]', params: { id: item.id } })}
-                accessibilityLabel={`${item.title}. ${meta.label}, ${item.entityName}.${item.deadline ? ` Cierra el ${shortDate(item.deadline)}.` : ''}`}
+                accessibilityLabel={`${item.title}. ${meta.label}, ${item.entityName}.${closing ? ` ${closing[0].toUpperCase()}${closing.slice(1)}.` : ''}`}
                 accessibilityHint="Abre el detalle de la oportunidad"
               >
                 <View style={styles.cardRow}>
@@ -79,7 +102,7 @@ export default function SavedScreen() {
                     </Text>
                     <Text style={[typography.secondary, { color: colors.textMuted }]}>
                       {item.entityName}
-                      {item.deadline ? ` · cierra el ${shortDate(item.deadline)}` : ''}
+                      {closing ? ` · ${closing}` : ''}
                     </Text>
                   </View>
                 </View>

@@ -87,6 +87,7 @@ export default function OpportunityDetailScreen() {
             category: opportunity.category,
             entityName: opportunity.entityName,
             deadline: opportunity.deadline,
+            validity: opportunity.validity,
           }}
         />
       </View>

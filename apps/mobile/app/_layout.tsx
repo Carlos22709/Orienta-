@@ -12,7 +12,7 @@ import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider } from 'react-redux';
 import { restoreSessionOnLaunch } from '../src/auth/actions';
-import { loadSaved, persistSaved } from '../src/saved/persistence';
+import { forgetLegacySavedList } from '../src/saved/legacyCleanup';
 import { loadSettings, persistSettings } from '../src/settings/persistence';
 import { store, useAppDispatch, useAppSelector } from '../src/store';
 import { selectSettings } from '../src/store/settingsSlice';
@@ -48,17 +48,13 @@ function ThemedStack() {
   });
 
   useEffect(() => {
-    // Recupera la sesión con el refresh_token guardado (decisión 0002) y la
-    // lista de guardadas del teléfono.
+    // Recupera la sesión con el refresh_token guardado (decisión 0002) y los
+    // ajustes de accesibilidad del teléfono.
     void dispatch(restoreSessionOnLaunch());
-    void loadSaved(dispatch);
     void loadSettings(dispatch);
-    const stopSaved = persistSaved(store);
+    void forgetLegacySavedList();
     const stopSettings = persistSettings(store);
-    return () => {
-      stopSaved();
-      stopSettings();
-    };
+    return stopSettings;
   }, [dispatch]);
 
   if (!fontsLoaded || !settings.hydrated) {

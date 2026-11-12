@@ -131,6 +131,7 @@ export function OpportunityCard({ opportunity, onPress }: OpportunityCardProps) 
             category: opportunity.category,
             entityName: opportunity.entityName,
             deadline: opportunity.deadline,
+            validity: opportunity.validity,
           }}
         />
       </View>
