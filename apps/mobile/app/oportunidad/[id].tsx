@@ -4,7 +4,9 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { CATEGORY_LABELS, MODALITY_LABELS } from '../../src/components/OpportunityCard';
 import { SaveButton } from '../../src/components/SaveButton';
-import { StatusBadge } from '../../src/components/StatusBadge';
+import { ListenButton } from '../../src/components/ListenButton';
+import { getStatusBadgeVisual, StatusBadge } from '../../src/components/StatusBadge';
+import { buildSpeechText } from '../../src/a11y/speechText';
 import { ErrorState } from '../../src/components/states/ErrorState';
 import { LoadingState } from '../../src/components/states/LoadingState';
 import { useGetOpportunityByIdQuery } from '../../src/store/api';
@@ -110,6 +112,18 @@ export default function OpportunityDetailScreen() {
         <Fact icon="calendar-outline" label="Cierre" value={opportunity.deadline ? longDate(opportunity.deadline) : 'Abierta todo el año'} />
         <Fact icon="location-outline" label="Modalidad" value={MODALITY_LABELS[opportunity.modality] ?? opportunity.modality} />
       </View>
+
+      <ListenButton
+        text={buildSpeechText({
+          title: opportunity.title,
+          entityName: opportunity.entityName,
+          summaryPlain: opportunity.summaryPlain,
+          requirements: opportunity.requirements,
+          deadline: opportunity.deadline,
+          modalityLabel: MODALITY_LABELS[opportunity.modality] ?? opportunity.modality,
+          validityText: getStatusBadgeVisual(opportunity.validity, colors).text,
+        })}
+      />
 
       <Card>
         <Text accessibilityRole="header" style={[typography.cardTitle, { color: colors.text }]}>
