@@ -35,7 +35,7 @@ La Fase 2 expresaba los objetivos táctiles en "44 × 44 px", mientras que la Fa
 
 ### Agrupación de contenedores táctiles (F2)
 
-En `OpportunityCard`, la zona principal de cada recomendación es un único `Pressable` con `accessible`, que el lector recorre como **un solo foco**. Su etiqueta incluye título, categoría, modalidad, entidad y razones de la recomendación, y su pista dice que se abrirá el detalle. El botón de guardar (♡, `src/components/SaveButton.tsx`) queda **fuera** del grupo y es un control separado. Si estuviera dentro, no se podría activar con el lector.
+En `OpportunityCard`, la zona principal de cada recomendación es un único `Pressable` con `accessible`, que el lector recorre como **un solo foco**. Su etiqueta incluye título, vigencia, categoría, modalidad, entidad y razones de la recomendación, y su pista dice que se abrirá el detalle (`buildOpportunityLabel`). El botón de guardar (♡, `src/components/SaveButton.tsx`) queda **fuera** del grupo y es un control separado. Si estuviera dentro, no se podría activar con el lector.
 
 Sin esta agrupación, cada texto de la tarjeta sería un foco distinto, y la persona tendría que deslizar varias veces por cada oportunidad.
 
@@ -135,7 +135,7 @@ Es un compromiso propio, que va más allá de WCAG: ayuda a personas con baja vi
 
 ## 3.5 Matriz trazable: propuesta de la Fase 2 frente a la implementación
 
-La columna "Tipo de evidencia" distingue entre **prueba automatizada** (Jest o Deno), **dispositivo** (auditoría registrada en un teléfono) y **revisión** (inspección del código). Varios compromisos figuran como "Validado" en la matriz solo con pruebas automatizadas. Su comportamiento en un teléfono con el diseño actual todavía debe confirmarse (ver 3.6).
+La columna "Tipo de evidencia" distingue entre **prueba automatizada** (Jest o Deno), **dispositivo** (auditoría registrada en un teléfono) y **revisión** (inspección del código). Varios compromisos figuran como "Validado" en la matriz solo con pruebas automatizadas. Su comportamiento en un teléfono con el diseño actual todavía debe confirmarse (ver 3.6, H3).
 
 | ID | Compromiso | Implementación (archivo) | Tipo de evidencia | Estado en la matriz |
 |---|---|---|---|---|
@@ -160,15 +160,15 @@ La columna "Tipo de evidencia" distingue entre **prueba automatizada** (Jest o D
 | F7 | Vibración opcional | `accesibilidad.tsx`, `feedback.ts` | Prueba automatizada | Implementado |
 | S1 | Código de 2FA accesible | `CodeInput.tsx`; `totp.ts` (backend) | Prueba automatizada | Validado |
 
-## 3.6 Hallazgos abiertos
+## 3.6 Hallazgos de la revisión
 
 La revisión del código para esta sección encontró los siguientes puntos. Se registran para que el documento no afirme más de lo que el producto hace.
 
-| # | Hallazgo | Impacto | Archivo | Corrección propuesta |
+| # | Hallazgo | Impacto | Corrección | Estado |
 |---|---|---|---|---|
-| H1 | `ErrorState` y `EmptyState` marcan todo su contenedor con `accessible`, y el botón "Reintentar" o de acción queda dentro. En iOS, un elemento `accessible` oculta a sus hijos, así que VoiceOver no puede llegar a ese botón. | En iOS, una persona ciega no puede reintentar tras un error de red ni seguir la acción de un estado vacío. | `src/components/states/ErrorState.tsx`, `EmptyState.tsx` | Agrupar solo el ícono, el título y el mensaje, y dejar el botón como elemento hermano. |
-| H2 | La etiqueta de `OpportunityCard` no incluye la vigencia. Como la zona principal agrupa a sus hijos, el lector no lee el `StatusBadge`. | Quien usa lector no se entera de que una convocatoria "cierra en 2 días". Incumple V2 para lectores de pantalla. El detalle y "Escuchar" sí la incluyen. | `src/components/OpportunityCard.tsx` | Agregar `getStatusBadgeVisual(...).label` a `accessibilityLabel`. |
-| H3 | Las auditorías en dispositivo registradas (10-nov) son del diseño anterior. Las del diseño actual siguen "Pendiente": VoiceOver en iOS y TalkBack con Accessibility Scanner en Android. | M1, V3, F1 y F2 no tienen evidencia en dispositivo con las pantallas actuales. | `docs/accessibility/matriz-trazabilidad.md`, sección 4 | Ejecutar ambas auditorías con el recorrido completo y registrar los hallazgos. |
+| H1 | `ErrorState` y `EmptyState` marcaban todo su contenedor con `accessible`, y el botón "Reintentar" o de acción quedaba dentro. En iOS, un elemento `accessible` oculta a sus hijos. | VoiceOver no podía llegar al botón: una persona ciega no podía reintentar tras un error de red. | Solo el ícono, el título y el mensaje forman el grupo; el botón quedó como elemento hermano (`src/components/states/ErrorState.tsx`, `EmptyState.tsx`). | Corregido en el código. Falta confirmarlo con VoiceOver |
+| H2 | La etiqueta de `OpportunityCard` no incluía la vigencia. Como la tarjeta agrupa a sus hijos, el lector no leía el `StatusBadge`. | Quien usa lector no se enteraba de que una convocatoria "cierra en 2 días" (V2). | `buildOpportunityLabel` agrega la vigencia justo después del título, con `validityLabel` de `statusBadgeHelper.ts`. | Corregido y probado en `OpportunityCard.test.ts`. Falta confirmarlo con lector |
+| H3 | Las auditorías en dispositivo registradas (10-nov) son del diseño anterior. Las del diseño actual siguen "Pendiente": VoiceOver en iOS y TalkBack con Accessibility Scanner en Android. | M1, V3, F1 y F2 no tienen evidencia en dispositivo con las pantallas actuales, y H1 y H2 están corregidos sin confirmar. | Ejecutar ambas auditorías con el recorrido completo y registrar los hallazgos en `docs/accessibility/matriz-trazabilidad.md`, sección 4. | Abierto |
 
 ## Referencias
 
