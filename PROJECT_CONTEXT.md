@@ -193,7 +193,8 @@ Estado al 2026-11-10:
 - App (`apps/mobile/`):
   - Expo Router, store de Redux con RTK Query, tokens visuales y pantalla provisional de salud de la API;
   - módulo de sesión sin pantallas todavía: PKCE, cliente REST de Supabase Auth, `refresh_token` en `expo-secure-store`, `access_token` en Redux, restauración al abrir y cola de silent refresh, con pruebas en Jest;
-  - pendiente: inicio de sesión con Google (requiere configurar el proveedor), pantallas de perfil, recomendaciones, 2FA y step-up.
+  - inicio de sesión con Google (PKCE) desde la bienvenida, con cierre de sesión; el proveedor Google está activo en el proyecto de la nube. Pendiente probarlo en un dispositivo;
+  - pendiente: pantallas de 2FA y step-up.
 - Pendiente de datos: las convocatorias reales verificadas (decisión 0007).
 - Matriz de accesibilidad en `docs/accessibility/matriz-trazabilidad.md`; ningún compromiso se ha auditado todavía en un dispositivo.
 
