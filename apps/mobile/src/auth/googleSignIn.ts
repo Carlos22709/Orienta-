@@ -72,6 +72,11 @@ export async function signInWithGoogle(
   const codeChallenge = await pkce.createCodeChallenge(codeVerifier);
   const state = pkce.createState();
   const redirectUrl = browser.createRedirectUrl(state);
+  if (__DEV__) {
+    // Ayuda a diagnosticar la redirección en desarrollo: Supabase rechaza las
+    // URL con IP (ver decisión 0002), así que aquí debe verse un nombre de host.
+    console.log(`[auth] URL de regreso: ${redirectUrl}`);
+  }
 
   const result = await browser.openAuthSession(
     authClient.buildAuthorizeUrl({

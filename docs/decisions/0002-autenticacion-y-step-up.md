@@ -121,7 +121,7 @@ Flujo:
 - Se necesita un cliente OAuth en Google Cloud y configurar el proveedor en Supabase. Son operaciones externas a cargo del equipo.
 - En Expo Go la URL de redirección incluye la IP local y cambia entre redes. En desarrollo se usa un comodín en la lista de redirecciones de Supabase; en la demo se verifica antes de presentar.
   - **Comprobado el 2026-11-12:** Supabase Auth rechaza cualquier `redirect_to` cuyo host sea una dirección IP distinta de la de loopback, y lo hace antes de consultar la lista de redirecciones (`IsRedirectURLValid` en `internal/utilities/request.go` del repositorio `supabase/auth`). En ese caso usa la *Site URL*, y en el teléfono aparece "couldn't connect to the server".
-  - Por eso el inicio de sesión se prueba con `npx expo start --tunnel`: la URL usa un nombre de host (`exp://…exp.direct/--/auth/callback`) que sí coincide con `exp://**`.
+  - Por eso el inicio de sesión se prueba con `npx expo start --tunnel`: la URL usa un nombre de host. Con Expo SDK 58 el túnel usa el esquema seguro `exps://` (`exps://…on.expo.app/--/auth/callback`), así que la lista de redirecciones de Supabase debe incluir `exps://**` además de `exp://**`.
 - No se cumple literalmente el punto del laboratorio sobre un esquema de URL propio (`orientaplus://`), porque Expo Go no lo permite. Si se necesita, se requiere un development build (ver [0004](0004-alcance-del-mvp.md)).
 
 ## Por validar (pruebas técnicas antes de implementar)

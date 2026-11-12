@@ -15,7 +15,9 @@ import { sessionDeps } from './sessionDeps';
 /**
  * Navegador del sistema (decisión 0002: nunca un WebView). En Expo Go la URL
  * de regreso es exp://<ip>:<puerto>/--/auth/callback; debe estar permitida en
- * Supabase (Authentication > URL Configuration, con exp://**).
+ * Supabase (Authentication > URL Configuration, con exp://** y exps://**).
+ * Supabase rechaza las URL con IP, por eso el inicio de sesión se prueba con
+ * npm run start:tunnel (esquema exps:// y nombre de host).
  */
 const systemBrowser: BrowserDeps = {
   createRedirectUrl: (state) =>

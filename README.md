@@ -82,7 +82,7 @@ npx expo start
 npm run start:tunnel
 ```
 
-El inicio de sesión con Google **no funciona** con `npx expo start` en la red local. La URL de regreso lleva la IP del computador (`exp://192.168.x.x:8081/...`), y Supabase Auth rechaza las URL de redirección con IP aunque estén en la lista permitida (ver la decisión 0002). El modo túnel usa un nombre de host (`…exp.direct`) y sí funciona. La primera vez puede pedir instalar `@expo/ngrok`: acepta.
+El inicio de sesión con Google **no funciona** con `npx expo start` en la red local. La URL de regreso lleva la IP del computador (`exp://192.168.x.x:8081/...`), y Supabase Auth rechaza las URL de redirección con IP aunque estén en la lista permitida (ver la decisión 0002). El modo túnel usa un nombre de host con el esquema `exps://` (`exps://…on.expo.app`) y sí funciona, siempre que en Supabase (*Authentication → URL Configuration → Redirect URLs*) estén `exp://**` y `exps://**`. La primera vez puede pedir instalar `@expo/ngrok`: acepta.
 
 ## Verificaciones
 
