@@ -43,6 +43,12 @@ export const recommendationsResponseSchema = z.object({
 });
 export type RecommendationsResponse = z.infer<typeof recommendationsResponseSchema>;
 
+/** Contrato de GET /api/opportunities (todas las vigentes, para explorar). */
+export const opportunityListSchema = z.object({
+  items: z.array(recommendationItemSchema.omit({ reasons: true })),
+});
+export type OpportunityListItem = z.infer<typeof opportunityListSchema>['items'][number];
+
 /** Contrato de GET /api/opportunities/:id (detalle completo). */
 export const opportunityDetailResponseSchema = z.object({
   id: z.string(),
@@ -170,6 +176,11 @@ export const api = createApi({
         recommendationsResponseSchema.parse(response),
       providesTags: ['Recommendations'],
     }),
+    getOpportunities: build.query<OpportunityListItem[], void>({
+      query: () => 'opportunities',
+      transformResponse: (response: unknown) => opportunityListSchema.parse(response).items,
+      providesTags: ['Opportunity'],
+    }),
     getOpportunityById: build.query<OpportunityDetailResponse, string>({
       query: (id) => `opportunities/${id}`,
       transformResponse: (response: unknown) =>
@@ -227,6 +238,7 @@ export const api = createApi({
 export const {
   useGetHealthQuery,
   useGetRecommendationsQuery,
+  useGetOpportunitiesQuery,
   useGetOpportunityByIdQuery,
   useGetCatalogQuery,
   useGetProfileQuery,

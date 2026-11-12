@@ -2,6 +2,7 @@ import { combineSlices, configureStore } from '@reduxjs/toolkit';
 import { useDispatch, useSelector } from 'react-redux';
 import { api } from './api';
 import { authSlice } from './authSlice';
+import { savedSlice } from './savedSlice';
 import { stepUpSlice } from './stepUpSlice';
 
 /**
@@ -9,9 +10,10 @@ import { stepUpSlice } from './stepUpSlice';
  *
  * - auth: sesión en memoria (access_token, persona, estado).
  * - stepUp: elevated_token del step-up, solo en memoria.
+ * - saved: oportunidades guardadas (se persisten en el teléfono).
  * - api: caché de RTK Query.
  */
-const rootReducer = combineSlices(authSlice, stepUpSlice, api);
+const rootReducer = combineSlices(authSlice, stepUpSlice, savedSlice, api);
 
 export const store = configureStore({
   reducer: rootReducer,
