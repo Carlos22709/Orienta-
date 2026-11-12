@@ -52,7 +52,7 @@ Deno.test("la educación y la experiencia deben alcanzar el mínimo exigido", ()
   assertEquals(check({ minExperience: "1_3y" }), ["experience"]);
 });
 
-Deno.test("la disponibilidad debe coincidir salvo que el perfil sea flexible", () => {
+Deno.test("la disponibilidad debe coincidir salvo que el perfil o la oportunidad sean flexibles", () => {
   const check = (p: Profile, availability: Profile["availability"][] | null) =>
     findUnmetCriteria(p, makeOpportunity({ availability }), TODAY);
 
@@ -63,6 +63,24 @@ Deno.test("la disponibilidad debe coincidir salvo que el perfil sea flexible", (
     check({ ...profile, availability: "flexible" }, ["full_time"]),
     [],
   );
+});
+
+Deno.test("una oportunidad flexible sirve para cualquier disponibilidad del perfil", () => {
+  const check = (p: Profile, availability: Profile["availability"][] | null) =>
+    findUnmetCriteria(p, makeOpportunity({ availability }), TODAY);
+
+  // Caso real del perfil de prueba P3 (solo fines de semana, decisión 0007).
+  const weekendsOnly: Profile = { ...profile, availability: "weekends" };
+  assertEquals(check(weekendsOnly, ["flexible"]), []);
+  assertEquals(check(weekendsOnly, ["flexible", "part_time"]), []);
+  assertEquals(
+    check({ ...profile, availability: "full_time" }, ["flexible"]),
+    [],
+  );
+  // Sin "flexible" en la oportunidad, la regla sigue exigiendo coincidencia.
+  assertEquals(check(weekendsOnly, ["part_time", "full_time"]), [
+    "availability",
+  ]);
 });
 
 Deno.test("se informan todos los criterios incumplidos", () => {

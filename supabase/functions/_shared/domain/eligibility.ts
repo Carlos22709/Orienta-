@@ -62,9 +62,13 @@ export function findUnmetCriteria(
     unmet.push("experience");
   }
 
+  // "flexible" en cualquiera de los dos lados significa que el horario se
+  // adapta: un perfil flexible sirve para cualquier oportunidad y una
+  // oportunidad flexible sirve para cualquier perfil (decisión 0005, regla 5).
   if (
     opportunity.availability !== null &&
     profile.availability !== "flexible" &&
+    !opportunity.availability.includes("flexible") &&
     !opportunity.availability.includes(profile.availability)
   ) {
     unmet.push("availability");
