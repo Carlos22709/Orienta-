@@ -196,7 +196,7 @@ Estado al 2026-11-11:
   - inicio de sesión con Google (PKCE) desde la bienvenida, con cierre de sesión; el proveedor Google está activo en el proyecto de la nube;
   - "Mis datos y seguridad" (`app/account/`): activación del 2FA (abrir en la app autenticadora, QR y clave copiable), descarga de los datos y eliminación de la cuenta, ambas con step-up;
   - pendiente: probar sesión, 2FA y step-up en un dispositivo (iOS y Android).
-- Pendiente en la nube: cargar `TOTP_ENCRYPTION_KEY` y `ELEVATED_TOKEN_SECRET` y desplegar la versión de la API con 2FA.
+- Nube: secretos del 2FA cargados y API con 2FA desplegada el 2026-11-11 (rutas nuevas responden 401 sin sesión). Pendiente probar el flujo completo con una sesión real desde la app.
 - Pendiente de datos: confirmar que las convocatorias reales verificadas cumplen la decisión 0007 y están cargadas en la nube.
 - Matriz de accesibilidad en `docs/accessibility/matriz-trazabilidad.md`, con el estado de cada compromiso.
 
