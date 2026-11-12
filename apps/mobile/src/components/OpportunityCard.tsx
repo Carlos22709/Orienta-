@@ -1,7 +1,10 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { minTouchTarget, spacing, typography } from '../theme/tokens';
+import { cardShadow, radius, spacing, typography } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
+import { categoryMeta, isCategoryKey } from '../ui/categories';
+import { SaveButton } from './SaveButton';
 import { StatusBadge, type ValidityKind } from './StatusBadge';
 
 export const CATEGORY_LABELS: Record<string, string> = {
@@ -27,6 +30,7 @@ export interface OpportunityItem {
   modality: string;
   deadline: string | null;
   validity: ValidityKind;
+  /** Razones de la recomendación; vacío en el listado de Explorar. */
   reasons: string[];
 }
 
@@ -36,163 +40,131 @@ export interface OpportunityCardProps {
 }
 
 /**
- * Tarjeta de oportunidad accesible y agrupada (compromisos M1, F2, V3).
+ * Tarjeta de oportunidad (compromisos M1, F2, V3; diseño Amanecer).
  *
- * VoiceOver y TalkBack la leen como una sola unidad semántica para evitar
- * focos fragmentados, e informan el rol de botón con su pista de acción.
+ * La zona principal es un solo botón accesible, con toda la información
+ * agrupada para que VoiceOver y TalkBack no fragmenten el foco. El ♡ es un
+ * botón aparte para guardarla.
  */
 export function OpportunityCard({ opportunity, onPress }: OpportunityCardProps) {
-  const { colors } = useTheme();
+  const { colors, categories } = useTheme();
+  const meta = categoryMeta(opportunity.category);
+  const tone = isCategoryKey(opportunity.category)
+    ? categories[opportunity.category]
+    : colors.chip;
 
   const categoryName = CATEGORY_LABELS[opportunity.category] ?? opportunity.category;
   const modalityName = MODALITY_LABELS[opportunity.modality] ?? opportunity.modality;
+  const reasons = opportunity.reasons;
 
-  const reasonsText = opportunity.reasons.length > 0
-    ? `Por qué te la recomendamos: ${opportunity.reasons.join('. ')}.`
+  const reasonsText = reasons.length > 0
+    ? `Por qué te la recomendamos: ${reasons.join('. ')}.`
     : '';
-
   const accessibilityLabel = `${opportunity.title}. Convocatoria de ${categoryName}, modalidad ${modalityName}, ofrecida por ${opportunity.entityName}. ${reasonsText}`;
 
   return (
-    <Pressable
-      accessible={true}
-      accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
-      accessibilityHint="Toca dos veces para ver requisitos, entidad y el enlace oficial de postulación"
-      onPress={onPress}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.card,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          opacity: pressed ? 0.9 : 1,
-        },
+        cardShadow(colors.shadow),
+        { backgroundColor: colors.surface, borderColor: colors.divider },
       ]}
     >
-      {/* Encabezado: Categoría y Estado de Vigencia */}
-      <View style={styles.topRow}>
-        <View
-          style={[
-            styles.categoryTag,
-            { backgroundColor: colors.background, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.categoryText, { color: colors.primary }]}>
-            {categoryName} • {modalityName}
-          </Text>
-        </View>
-        <StatusBadge validity={opportunity.validity} />
-      </View>
-
-      {/* Título y Entidad */}
-      <Text style={[styles.title, { color: colors.text }]}>
-        {opportunity.title}
-      </Text>
-      <Text style={[styles.entity, { color: colors.textMuted }]}>
-        {opportunity.entityName}
-      </Text>
-
-      {/* Resumen en lenguaje claro */}
-      <Text
-        numberOfLines={3}
-        style={[styles.summary, { color: colors.text }]}
+      <Pressable
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint="Toca dos veces para ver requisitos, entidad y el enlace oficial de postulación"
+        onPress={onPress}
+        style={({ pressed }) => [styles.main, { opacity: pressed ? 0.85 : 1 }]}
       >
-        {opportunity.summaryPlain}
-      </Text>
-
-      {/* Razones de recomendación */}
-      {opportunity.reasons.length > 0 && (
-        <View
-          style={[
-            styles.reasonsContainer,
-            { backgroundColor: colors.background, borderColor: colors.border },
-          ]}
-        >
-          <Text style={[styles.reasonsTitle, { color: colors.textMuted }]}>
-            Razón de la recomendación:
-          </Text>
-          {opportunity.reasons.map((reason, index) => (
-            <Text
-              key={index}
-              style={[styles.reasonItem, { color: colors.text }]}
-            >
-              • {reason}
-            </Text>
-          ))}
+        <View style={styles.topRow}>
+          <View style={[styles.category, { backgroundColor: tone }]}>
+            <Ionicons name={meta.icon} size={14} color={colors.text} />
+            <Text style={[typography.label, { color: colors.text }]}>{categoryName}</Text>
+          </View>
+          <StatusBadge validity={opportunity.validity} />
         </View>
-      )}
 
-      {/* Indicador de acción */}
-      <View style={styles.footerRow}>
-        <Text style={[styles.viewDetailsText, { color: colors.primary }]}>
-          Ver requisitos y postulación →
+        <Text style={[typography.cardTitle, { color: colors.text }]}>{opportunity.title}</Text>
+        <Text style={[typography.secondary, { color: colors.textMuted }]}>
+          {opportunity.entityName} · {modalityName}
         </Text>
+        <Text numberOfLines={2} style={[typography.body, { color: colors.text }]}>
+          {opportunity.summaryPlain}
+        </Text>
+
+        {reasons.length > 0 && (
+          <View style={[styles.reasons, { backgroundColor: colors.surfaceAlt }]}>
+            <Text style={[typography.label, { color: colors.chipText }]}>Por qué para ti</Text>
+            {reasons.map((reason, index) => (
+              <View key={index} style={styles.reason}>
+                <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                <Text style={[typography.secondary, styles.reasonText, { color: colors.text }]}>
+                  {reason}
+                </Text>
+              </View>
+            ))}
+          </View>
+        )}
+      </Pressable>
+
+      <View style={[styles.footer, { borderTopColor: colors.divider }]}>
+        <Text style={[typography.label, { color: colors.primary }]}>Ver detalle  ›</Text>
+        <SaveButton
+          opportunity={{
+            id: opportunity.id,
+            title: opportunity.title,
+            category: opportunity.category,
+            entityName: opportunity.entityName,
+            deadline: opportunity.deadline,
+          }}
+        />
       </View>
-    </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: radius.lg,
     borderWidth: 1,
-    marginBottom: spacing.md, // Separación de al menos 12 (compromiso M1)
-    minHeight: minTouchTarget, // Cumple área táctil mínima (compromiso M1)
+    overflow: 'visible',
+  },
+  main: {
     padding: spacing.lg,
+    paddingBottom: spacing.md,
+    gap: spacing.sm,
   },
   topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
-    gap: spacing.sm,
     flexWrap: 'wrap',
+    gap: spacing.sm,
   },
-  categoryTag: {
-    borderRadius: 6,
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+  category: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
   },
-  categoryText: {
-    ...typography.secondary,
-    fontWeight: '600',
-  },
-  title: {
-    ...typography.cardTitle,
-    marginBottom: spacing.xs,
-  },
-  entity: {
-    ...typography.secondary,
-    marginBottom: spacing.sm,
-  },
-  summary: {
-    ...typography.body,
-    marginBottom: spacing.md,
-    lineHeight: 22,
-  },
-  reasonsContainer: {
-    borderRadius: 8,
-    borderWidth: 1,
-    padding: spacing.sm,
-    marginBottom: spacing.sm,
-  },
-  reasonsTitle: {
-    ...typography.secondary,
-    fontWeight: '600',
-    marginBottom: spacing.xs,
-  },
-  reasonItem: {
-    ...typography.secondary,
-    marginLeft: spacing.xs,
-    lineHeight: 20,
-  },
-  footerRow: {
-    alignItems: 'flex-end',
+  reasons: {
+    borderRadius: radius.md,
+    padding: spacing.md,
+    gap: 6,
     marginTop: spacing.xs,
   },
-  viewDetailsText: {
-    ...typography.secondary,
-    fontWeight: '600',
+  reason: { flexDirection: 'row', gap: 6, alignItems: 'flex-start' },
+  reasonText: { flex: 1 },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    paddingLeft: spacing.lg,
+    paddingRight: spacing.xs,
   },
 });

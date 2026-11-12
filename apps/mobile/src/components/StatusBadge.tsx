@@ -48,16 +48,15 @@ export function StatusBadge({ validity }: StatusBadgeProps) {
 const styles = StyleSheet.create({
   badge: {
     alignSelf: 'flex-start',
-    borderRadius: 6,
+    borderRadius: 999,
     borderWidth: 1.5,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 3,
   },
   text: {
-    ...typography.secondary,
-    fontWeight: '600',
+    ...typography.label,
   },
   icon: {
-    fontWeight: '700',
+    ...typography.label,
   },
 });

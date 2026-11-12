@@ -1,11 +1,14 @@
+import { Ionicons } from '@expo/vector-icons';
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { minTouchTarget, spacing, typography } from '../theme/tokens';
+import { minTouchTarget, radius, spacing, typography } from '../theme/tokens';
 import { useTheme } from '../theme/useTheme';
 
 export interface OptionGroupProps {
   /** Pregunta del grupo; el lector la anuncia como encabezado. */
   title: string;
+  /** Oculta el título visible cuando la pantalla ya muestra la pregunta. */
+  hideTitle?: boolean;
   options: ReadonlyArray<{ value: string; label: string }>;
   /** single = una sola respuesta (radio); multiple = varias (checkbox). */
   mode: 'single' | 'multiple';
@@ -16,11 +19,12 @@ export interface OptionGroupProps {
 }
 
 /**
- * Grupo de opciones accesible del formulario de perfil.
+ * Grupo de opciones accesible (creado por Laura para el formulario de perfil;
+ * rediseño Amanecer en filas de ancho completo).
  *
  * - Cada opción es un Pressable con rol radio o checkbox y su estado checked,
  *   para que VoiceOver y TalkBack anuncien "marcado" o "no marcado".
- * - La opción elegida se distingue con "✓" y borde grueso, además del color
+ * - La opción elegida se distingue con ícono y borde grueso, además del color
  *   (WCAG 1.4.1, compromiso V2).
  * - Cada opción mide al menos 48 de alto (compromiso M1).
  * - El error se muestra junto a la pregunta, con ícono y texto, y se anuncia
@@ -28,6 +32,7 @@ export interface OptionGroupProps {
  */
 export function OptionGroup({
   title,
+  hideTitle = false,
   options,
   mode,
   selected,
@@ -39,12 +44,11 @@ export function OptionGroup({
 
   return (
     <View style={styles.section}>
-      <Text
-        accessibilityRole="header"
-        style={[typography.cardTitle, styles.title, { color: colors.text }]}
-      >
-        {title}
-      </Text>
+      {!hideTitle && (
+        <Text accessibilityRole="header" style={[typography.cardTitle, { color: colors.text }]}>
+          {title}
+        </Text>
+      )}
       {mode === 'multiple' && (
         <Text style={[typography.secondary, { color: colors.textMuted }]}>
           Puedes elegir varias opciones.
@@ -58,6 +62,9 @@ export function OptionGroup({
       >
         {options.map((option) => {
           const checked = selected.includes(option.value);
+          const icon = mode === 'single'
+            ? checked ? 'radio-button-on' : 'radio-button-off'
+            : checked ? 'checkbox' : 'square-outline';
           return (
             <Pressable
               key={option.value}
@@ -68,21 +75,25 @@ export function OptionGroup({
               style={({ pressed }) => [
                 styles.option,
                 {
-                  backgroundColor: checked ? colors.primary : colors.surface,
-                  borderColor: checked ? colors.primary : colors.border,
+                  backgroundColor: checked ? colors.chip : colors.surface,
+                  borderColor: checked ? colors.primary : colors.divider,
                   borderWidth: checked ? 2 : 1,
                   opacity: pressed ? 0.85 : 1,
                 },
               ]}
             >
+              <Ionicons
+                name={icon}
+                size={22}
+                color={checked ? colors.primary : colors.textMuted}
+              />
               <Text
                 style={[
-                  typography.secondary,
+                  checked ? typography.bodyStrong : typography.body,
                   styles.optionLabel,
-                  { color: checked ? colors.onPrimary : colors.text },
+                  { color: colors.text },
                 ]}
               >
-                {checked ? '✓ ' : ''}
                 {option.label}
               </Text>
             </Pressable>
@@ -93,7 +104,7 @@ export function OptionGroup({
       {error && (
         <Text
           accessibilityLiveRegion="polite"
-          style={[typography.secondary, styles.error, { color: colors.danger }]}
+          style={[typography.label, { color: colors.danger }]}
         >
           ⚠ {error}
         </Text>
@@ -105,27 +116,20 @@ export function OptionGroup({
 const styles = StyleSheet.create({
   section: {
     gap: spacing.sm,
-    marginBottom: spacing.xl,
-  },
-  title: {
-    marginBottom: spacing.xs,
   },
   options: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   option: {
-    borderRadius: 8,
-    justifyContent: 'center',
-    minHeight: minTouchTarget,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderRadius: radius.md,
+    minHeight: minTouchTarget + 8,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
   },
   optionLabel: {
-    fontWeight: '600',
-  },
-  error: {
-    fontWeight: '600',
+    flex: 1,
   },
 });
