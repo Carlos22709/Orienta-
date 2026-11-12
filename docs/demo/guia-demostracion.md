@@ -40,8 +40,8 @@
   1. **Agrupación (F2):** con VoiceOver o TalkBack, cada tarjeta se lee como un solo bloque. El corazón es un botón aparte que anuncia "Guardar oportunidad".
   2. **Vigencia sin depender del color (V2):** la insignia lleva ícono y texto ("Cierra en N días").
   3. **Háptica y anuncios (A2):** al guardar con el corazón, el teléfono vibra y el lector anuncia "Guardada".
-  4. **Tema oscuro (V1):** cambiar el tema del sistema; la paleta Amanecer oscura mantiene el contraste AA.
-  5. **Texto grande (F1):** subir el tamaño de letra del sistema y mostrar que nada se recorta.
+  4. **Pantalla Accesibilidad (F1, F5, F7):** en Perfil, abrir **Accesibilidad**, cambiar a **Oscuro** y subir el texto con **+** hasta 140 % viendo la vista previa. Volver a Para ti: todo cambió al instante y nada se recorta.
+  5. **Escuchar (F6):** en el detalle de una oportunidad, tocar **Escuchar**; el teléfono la lee en voz alta.
 
 ### 3:00 – 3:50 · Explorar, detalle y sitio oficial
 - **Pantallas:** `app/(tabs)/explorar.tsx` y `app/oportunidad/[id].tsx`.

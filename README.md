@@ -197,7 +197,12 @@ Orienta+ cumple WCAG 2.2 nivel AA adaptado a móvil (detalle por compromiso en l
   - encabezados marcados;
   - modal de verificación con `accessibilityViewIsModal`.
 - **Contraste:** paleta Amanecer clara y oscura verificada con pruebas automáticas (`tokens.test.ts`, `amanecer.test.ts`): texto ≥ 4.5:1 y bordes ≥ 3:1.
-- **Tipografía adaptativa:** Nunito con `lineHeight` amplio y escalado del sistema activo.
+- **Pantalla Accesibilidad** (`app/accesibilidad.tsx`, desde la bienvenida y desde Perfil):
+  - tema según el teléfono, claro u oscuro;
+  - tamaño de texto ajustable del 85 % al 160 % con vista previa (control `adjustable` para lectores);
+  - vibración opcional.
+- **Escuchar:** cada oportunidad se puede leer en voz alta (`expo-speech`).
+- **Tipografía adaptativa:** Nunito con `lineHeight` amplio, que escala junto con el tamaño; el escalado del sistema sigue activo.
 - **Sin depender del color:** la vigencia y las opciones elegidas siempre llevan ícono y texto.
 - **Ergonomía táctil:**
   - áreas táctiles de 48 o más;
