@@ -181,7 +181,7 @@ Por la importancia de la defensa individual, el código debe favorecer comprensi
 
 ## 10. Estado actual del repositorio
 
-Estado al 2026-11-10:
+Estado al 2026-11-11:
 
 - Repositorio en GitHub (`Carlos22709/Orienta-`).
 - Decisiones técnicas y de alcance en `docs/decisions/` (0001–0009), aprobadas por Carlos y pendientes de ratificación por Laura y Juan.
@@ -192,11 +192,13 @@ Estado al 2026-11-10:
   - proyecto en la nube creado; migración y seed aplicados.
 - App (`apps/mobile/`):
   - Expo Router, store de Redux con RTK Query, tokens visuales y pantalla provisional de salud de la API;
-  - módulo de sesión sin pantallas todavía: PKCE, cliente REST de Supabase Auth, `refresh_token` en `expo-secure-store`, `access_token` en Redux, restauración al abrir y cola de silent refresh, con pruebas en Jest;
-  - inicio de sesión con Google (PKCE) desde la bienvenida, con cierre de sesión; el proveedor Google está activo en el proyecto de la nube. Pendiente probarlo en un dispositivo;
-  - pendiente: pantallas de 2FA y step-up.
-- Pendiente de datos: las convocatorias reales verificadas (decisión 0007).
-- Matriz de accesibilidad en `docs/accessibility/matriz-trazabilidad.md`; ningún compromiso se ha auditado todavía en un dispositivo.
+  - sesión: PKCE, cliente REST de Supabase Auth, `refresh_token` en `expo-secure-store`, `access_token` en Redux, restauración al abrir y cola de silent refresh, con pruebas en Jest;
+  - inicio de sesión con Google (PKCE) desde la bienvenida, con cierre de sesión; el proveedor Google está activo en el proyecto de la nube;
+  - "Mis datos y seguridad" (`app/account/`): activación del 2FA (abrir en la app autenticadora, QR y clave copiable), descarga de los datos y eliminación de la cuenta, ambas con step-up;
+  - pendiente: probar sesión, 2FA y step-up en un dispositivo (iOS y Android).
+- Pendiente en la nube: cargar `TOTP_ENCRYPTION_KEY` y `ELEVATED_TOKEN_SECRET` y desplegar la versión de la API con 2FA.
+- Pendiente de datos: confirmar que las convocatorias reales verificadas cumplen la decisión 0007 y están cargadas en la nube.
+- Matriz de accesibilidad en `docs/accessibility/matriz-trazabilidad.md`, con el estado de cada compromiso.
 
 ## 11. Decisiones técnicas
 

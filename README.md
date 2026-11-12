@@ -20,6 +20,7 @@ Proyecto del curso Desarrollo de Aplicaciones Móviles, Universidad de La Sabana
 apps/mobile/            app Expo
   app/                  pantallas (Expo Router)
   src/auth/             sesión: PKCE, cliente REST de Supabase Auth, almacenamiento seguro
+  src/security/         step-up: lectura de errores de la API y reglas de la verificación
   src/config/           variables de entorno
   src/store/            store de Redux, cliente de la API (RTK Query) y cola de silent refresh
   src/theme/            tokens visuales accesibles
