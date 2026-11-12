@@ -1,4 +1,4 @@
-import { buildSpeechText } from './speechText';
+import { buildSpeechText, pickSpanishVoice } from './speechText';
 
 const base = {
   title: 'Talento Tech',
@@ -26,5 +26,19 @@ describe('texto para escuchar una oportunidad', () => {
 
   it('omite los requisitos si no hay', () => {
     expect(buildSpeechText({ ...base, requirements: [] })).not.toContain('Requisitos');
+  });
+});
+
+describe('elección de la voz en español', () => {
+  const voice = (identifier: string, language: string) => ({ identifier, language });
+
+  it('prefiere la voz de Colombia y luego otras variantes de español', () => {
+    expect(pickSpanishVoice([voice('en', 'en-US'), voice('mx', 'es-MX'), voice('co', 'es-CO')])?.identifier).toBe('co');
+    expect(pickSpanishVoice([voice('en', 'en-US'), voice('es', 'es-ES'), voice('mx', 'es_MX')])?.identifier).toBe('mx');
+  });
+
+  it('usa cualquier voz en español si no hay una preferida y null si no hay ninguna', () => {
+    expect(pickSpanishVoice([voice('ar', 'es-AR')])?.identifier).toBe('ar');
+    expect(pickSpanishVoice([voice('en', 'en-US')])).toBeNull();
   });
 });

@@ -39,3 +39,24 @@ export function buildSpeechText(o: SpeakableOpportunity): string {
   parts.push('Para postularte, usa el botón Postularme en el sitio oficial.');
   return parts.join(' ');
 }
+
+/** Variantes de español en orden de preferencia (Colombia primero). */
+const SPANISH_PREFERENCE = ['es-co', 'es-mx', 'es-us', 'es-419', 'es-es'];
+
+/**
+ * Elige la voz en español que el teléfono sí tiene instalada. Si ninguna
+ * coincide exacto, toma cualquier voz "es". null si no hay voces en español.
+ */
+export function pickSpanishVoice<V extends { identifier: string; language: string }>(
+  voices: readonly V[],
+): V | null {
+  const normalized = voices.map((voice) => ({
+    voice,
+    lang: voice.language.replace('_', '-').toLowerCase(),
+  }));
+  for (const preferred of SPANISH_PREFERENCE) {
+    const match = normalized.find((v) => v.lang === preferred);
+    if (match) return match.voice;
+  }
+  return normalized.find((v) => v.lang.startsWith('es'))?.voice ?? null;
+}
