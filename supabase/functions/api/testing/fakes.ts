@@ -10,6 +10,7 @@ import type {
   OpportunityRecord,
   OpportunityView,
   Repository,
+  SavedOpportunityRecord,
   StoredProfile,
 } from "../deps.ts";
 import { makeOpportunity, NOW } from "../../_shared/domain/testing/fixtures.ts";
@@ -63,6 +64,7 @@ export class InMemoryRepository implements Repository {
   profiles = new Map<string, StoredProfile>();
   opportunities: OpportunityRecord[] = [];
   views: Array<{ userId: string; opportunityId: string }> = [];
+  saved: Array<{ userId: string; opportunityId: string; savedAt: string }> = [];
   mfaFactors = new Map<string, MfaFactor>();
   challenges: StoredChallenge[] = [];
   deletedUsers: string[] = [];
@@ -114,6 +116,41 @@ export class InMemoryRepository implements Repository {
         firstViewedAt: this.now().toISOString(),
       })),
     );
+  }
+
+  listSavedOpportunities(userId: string): Promise<SavedOpportunityRecord[]> {
+    return Promise.resolve(
+      this.saved
+        .filter((s) => s.userId === userId)
+        .flatMap((s) => {
+          const opportunity = this.opportunities.find((o) =>
+            o.id === s.opportunityId
+          );
+          return opportunity ? [{ opportunity, savedAt: s.savedAt }] : [];
+        })
+        .sort((a, b) => b.savedAt.localeCompare(a.savedAt)),
+    );
+  }
+
+  saveOpportunity(userId: string, opportunityId: string) {
+    const exists = this.saved.some((s) =>
+      s.userId === userId && s.opportunityId === opportunityId
+    );
+    if (!exists) {
+      this.saved.push({
+        userId,
+        opportunityId,
+        savedAt: this.now().toISOString(),
+      });
+    }
+    return Promise.resolve();
+  }
+
+  unsaveOpportunity(userId: string, opportunityId: string) {
+    this.saved = this.saved.filter((s) =>
+      !(s.userId === userId && s.opportunityId === opportunityId)
+    );
+    return Promise.resolve();
   }
 
   getMfaFactor(userId: string) {
@@ -183,6 +220,7 @@ export class InMemoryRepository implements Repository {
     this.profiles.delete(userId);
     this.mfaFactors.delete(userId);
     this.views = this.views.filter((v) => v.userId !== userId);
+    this.saved = this.saved.filter((s) => s.userId !== userId);
     return Promise.resolve();
   }
 }

@@ -46,6 +46,12 @@ export interface OpportunityView {
   firstViewedAt: string;
 }
 
+/** Oportunidad que la persona guardó con el ♡. */
+export interface SavedOpportunityRecord {
+  opportunity: OpportunityRecord;
+  savedAt: string;
+}
+
 export interface AuthUser {
   id: string;
   email: string | null;
@@ -99,6 +105,14 @@ export interface Repository {
   /** Registra la primera vez que la persona ve una oportunidad. */
   recordView(userId: string, opportunityId: string): Promise<void>;
   listOpportunityViews(userId: string): Promise<OpportunityView[]>;
+
+  // --- Guardadas (♡) ---
+  /** Guardadas de la persona, la más reciente primero. */
+  listSavedOpportunities(userId: string): Promise<SavedOpportunityRecord[]>;
+  /** Guarda una oportunidad; si ya estaba guardada, conserva la fecha original. */
+  saveOpportunity(userId: string, opportunityId: string): Promise<void>;
+  /** Quita una oportunidad de las guardadas; no falla si no estaba. */
+  unsaveOpportunity(userId: string, opportunityId: string): Promise<void>;
 
   // --- Segundo factor y step-up (decisión 0002) ---
   getMfaFactor(userId: string): Promise<MfaFactor | null>;

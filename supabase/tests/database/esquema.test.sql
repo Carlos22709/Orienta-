@@ -3,7 +3,7 @@
 begin;
 create extension if not exists pgtap with schema extensions;
 
-select plan(26);
+select plan(30);
 
 -- ---------------------------------------------------------------------------
 -- Tablas y RLS
@@ -14,15 +14,17 @@ select has_table('public', 'opportunities', 'existe opportunities');
 select has_table('public', 'opportunity_views', 'existe opportunity_views');
 select has_table('public', 'mfa_factors', 'existe mfa_factors');
 select has_table('public', 'step_up_challenges', 'existe step_up_challenges');
+select has_table('public', 'saved_opportunities', 'existe saved_opportunities');
 
 select is(
   (select count(*)::int from pg_tables
     where schemaname = 'public'
       and tablename in ('municipalities', 'profiles', 'opportunities',
-                        'opportunity_views', 'mfa_factors', 'step_up_challenges')
+                        'opportunity_views', 'mfa_factors', 'step_up_challenges',
+                        'saved_opportunities')
       and rowsecurity),
-  6,
-  'las seis tablas tienen RLS activado'
+  7,
+  'las siete tablas tienen RLS activado'
 );
 
 select is(
@@ -95,6 +97,22 @@ select throws_ok(
 );
 
 -- ---------------------------------------------------------------------------
+-- Guardadas: una sola fila por persona y oportunidad
+-- ---------------------------------------------------------------------------
+insert into public.saved_opportunities (user_id, opportunity_id)
+select '00000000-0000-0000-0000-000000000001', id
+  from public.opportunities
+ where official_url = 'https://example.com/inscripcion';
+
+select throws_ok(
+  $$ insert into public.saved_opportunities (user_id, opportunity_id)
+     select user_id, opportunity_id from public.saved_opportunities $$,
+  '23505',
+  null,
+  'no permite guardar dos veces la misma oportunidad'
+);
+
+-- ---------------------------------------------------------------------------
 -- Anti-replay de TOTP: consume_totp_step es atómica
 -- ---------------------------------------------------------------------------
 insert into public.mfa_factors (user_id, secret_ciphertext, secret_iv, confirmed_at)
@@ -164,6 +182,12 @@ select throws_ok(
   'authenticated no puede leer mfa_factors'
 );
 select throws_ok(
+  'select * from public.saved_opportunities',
+  '42501',
+  null,
+  'authenticated no puede leer saved_opportunities'
+);
+select throws_ok(
   $$ select public.consume_totp_step('00000000-0000-0000-0000-000000000001', 500) $$,
   '42501',
   null,
@@ -182,6 +206,17 @@ select lives_ok(
   'service_role puede ejecutar consume_totp_step'
 );
 reset role;
+
+-- ---------------------------------------------------------------------------
+-- Eliminar la cuenta borra sus guardadas en cascada
+-- ---------------------------------------------------------------------------
+delete from auth.users where id = '00000000-0000-0000-0000-000000000001';
+select is(
+  (select count(*)::int from public.saved_opportunities
+    where user_id = '00000000-0000-0000-0000-000000000001'),
+  0,
+  'al eliminar la cuenta se borran sus guardadas'
+);
 
 select * from finish();
 rollback;

@@ -8,6 +8,7 @@ import { healthRoutes } from "./routes/health.ts";
 import { opportunityRoutes } from "./routes/opportunities.ts";
 import { profileRoutes } from "./routes/profile.ts";
 import { recommendationRoutes } from "./routes/recommendations.ts";
+import { savedRoutes } from "./routes/saved.ts";
 
 /**
  * Crea la aplicación HTTP de Orienta+.
@@ -23,6 +24,7 @@ export function createApp(deps: AppDependencies) {
   app.route("/health", healthRoutes);
   app.route("/catalog", catalogRoutes(deps));
   app.route("/me/profile", profileRoutes(deps));
+  app.route("/me/saved", savedRoutes(deps));
   app.route("/recommendations", recommendationRoutes(deps));
   app.route("/opportunities", opportunityRoutes(deps));
   app.route("/mfa", mfaRoutes(deps));

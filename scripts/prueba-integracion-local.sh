@@ -108,6 +108,12 @@ check "la vista quedó registrada" 1 \
   "$(psql_local "select count(*) from public.opportunity_views where user_id = '$USER_ID';")"
 check "un id inexistente responde 404" 404 \
   "$(status_of "$FN/opportunities/00000000-0000-0000-0000-000000000000" "${AUTH[@]}")"
+check "PUT /me/saved/:id guarda la oportunidad" 204 \
+  "$(status_of -X PUT "$FN/me/saved/$OPPORTUNITY_ID" "${AUTH[@]}")"
+check "guardar dos veces no falla" 204 \
+  "$(status_of -X PUT "$FN/me/saved/$OPPORTUNITY_ID" "${AUTH[@]}")"
+check "GET /me/saved la devuelve" "$OPPORTUNITY_ID" \
+  "$(curl -s "$FN/me/saved" "${AUTH[@]}" | json_field 'body.items.map(i => i.id).join(",")')"
 
 echo "6. Segundo factor (TOTP) y step-up"
 # Genera el código TOTP con el crypto de Node: es una implementación
@@ -158,13 +164,15 @@ check "reusar el mismo código responde 409 (anti-replay)" 409 \
 EXPORT=$(curl -s "$FN/me/data-export" "${AUTH[@]}" -H "X-Elevated-Token: $ELEVATED")
 check "con token elevado la exportación trae el perfil" 2007-03-15 \
   "$(echo "$EXPORT" | json_field 'body.profile.birthDate')"
+check "la exportación incluye las guardadas" "$OPPORTUNITY_ID" \
+  "$(echo "$EXPORT" | json_field 'body.savedOpportunities.map(s => s.opportunityId).join(",")')"
 check "la exportación no incluye la semilla TOTP" no \
   "$(echo "$EXPORT" | grep -q "$SEED" && echo yes || echo no)"
 
 check "DELETE /me con token elevado responde 204" 204 \
   "$(status_of -X DELETE "$FN/me" "${AUTH[@]}" -H "X-Elevated-Token: $ELEVATED")"
 check "la cuenta y sus datos se borraron en cascada" 0 \
-  "$(psql_local "select (select count(*) from auth.users where id = '$USER_ID') + (select count(*) from public.profiles where user_id = '$USER_ID') + (select count(*) from public.mfa_factors where user_id = '$USER_ID');")"
+  "$(psql_local "select (select count(*) from auth.users where id = '$USER_ID') + (select count(*) from public.profiles where user_id = '$USER_ID') + (select count(*) from public.mfa_factors where user_id = '$USER_ID') + (select count(*) from public.saved_opportunities where user_id = '$USER_ID');")"
 USER_ID="" # ya no hay usuario que limpiar
 
 echo "7. La clave pública no puede leer tablas directamente"

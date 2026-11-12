@@ -20,9 +20,10 @@ export function accountRoutes(deps: AppDependencies) {
     requireElevation(deps, "data_export"),
     async (c) => {
       const user = c.get("user");
-      const [profile, opportunityViews, factor] = await Promise.all([
+      const [profile, opportunityViews, saved, factor] = await Promise.all([
         deps.repository.getProfile(user.id),
         deps.repository.listOpportunityViews(user.id),
+        deps.repository.listSavedOpportunities(user.id),
         deps.repository.getMfaFactor(user.id),
       ]);
       return c.json({
@@ -30,6 +31,11 @@ export function accountRoutes(deps: AppDependencies) {
         account: { id: user.id, email: user.email },
         profile,
         opportunityViews,
+        savedOpportunities: saved.map(({ opportunity, savedAt }) => ({
+          opportunityId: opportunity.id,
+          title: opportunity.title,
+          savedAt,
+        })),
         // Nunca se exporta el secreto TOTP, solo si el 2FA está activo.
         twoFactor: {
           enrolled: Boolean(factor?.confirmedAt),

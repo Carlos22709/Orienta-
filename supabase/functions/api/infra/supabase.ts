@@ -11,6 +11,7 @@ import type {
   OpportunityRecord,
   OpportunityView,
   Repository,
+  SavedOpportunityRecord,
   StoredProfile,
 } from "../deps.ts";
 import { findMissingFields, PROFILE_FIELDS } from "../profile-completeness.ts";
@@ -206,6 +207,50 @@ export class SupabaseRepository implements Repository {
     }));
   }
 
+  // --- Guardadas (♡) ---
+
+  async listSavedOpportunities(
+    userId: string,
+  ): Promise<SavedOpportunityRecord[]> {
+    const { data, error } = await this.db
+      .from("saved_opportunities")
+      .select(`saved_at, opportunities(${OPPORTUNITY_COLUMNS})`)
+      .eq("user_id", userId)
+      .order("saved_at", { ascending: false });
+    if (error) throw new Error(`saved_opportunities: ${error.message}`);
+    // deno-lint-ignore no-explicit-any
+    return (data as any[])
+      .filter((row) => row.opportunities)
+      .map((row) => ({
+        opportunity: toOpportunityRecord(row.opportunities as OpportunityRow),
+        savedAt: row.saved_at,
+      }));
+  }
+
+  async saveOpportunity(userId: string, opportunityId: string): Promise<void> {
+    // ignoreDuplicates: guardar dos veces no cambia la fecha original.
+    const { error } = await this.db
+      .from("saved_opportunities")
+      .upsert(
+        { user_id: userId, opportunity_id: opportunityId },
+        { onConflict: "user_id,opportunity_id", ignoreDuplicates: true },
+      );
+    if (error) throw new Error(`saved_opportunities: ${error.message}`);
+  }
+
+  async unsaveOpportunity(
+    userId: string,
+    opportunityId: string,
+  ): Promise<void> {
+    if (!UUID.test(opportunityId)) return;
+    const { error } = await this.db
+      .from("saved_opportunities")
+      .delete()
+      .eq("user_id", userId)
+      .eq("opportunity_id", opportunityId);
+    if (error) throw new Error(`saved_opportunities: ${error.message}`);
+  }
+
   // --- Segundo factor y step-up ---
 
   async getMfaFactor(userId: string): Promise<MfaFactor | null> {
@@ -310,7 +355,7 @@ export class SupabaseRepository implements Repository {
 
   async deleteUser(userId: string): Promise<void> {
     // Borrar el usuario de Supabase Auth elimina en cascada perfil, vistas,
-    // factor TOTP y retos (ON DELETE CASCADE en la migración).
+    // guardadas, factor TOTP y retos (ON DELETE CASCADE en las migraciones).
     const { error } = await this.db.auth.admin.deleteUser(userId);
     if (error) throw new Error(`auth.admin.deleteUser: ${error.message}`);
   }

@@ -5,10 +5,12 @@ import {
   AUTH_HEADER,
   COMPLETE_PROFILE,
   createTestApp,
+  makeOpportunityRecord,
   OTHER_USER_TOKEN,
   TEST_USER,
   TestClock,
 } from "../testing/fakes.ts";
+import { NOW } from "../../_shared/domain/testing/fixtures.ts";
 
 type App = ReturnType<typeof createTestApp>["app"];
 
@@ -45,6 +47,7 @@ function setup() {
   const clock = new TestClock();
   const { app, repository } = createTestApp({ now: clock.now });
   repository.profiles.set(TEST_USER.id, COMPLETE_PROFILE);
+  repository.opportunities = [makeOpportunityRecord({ id: "guardada" })];
   return { app, repository, clock };
 }
 
@@ -61,6 +64,11 @@ Deno.test("sin 2FA activo, una acción crítica pide activarlo primero", async (
 
 Deno.test("flujo completo: 403 mfa_required, verificación TOTP y exportación de datos", async () => {
   const { app, repository, clock } = setup();
+  repository.saved = [{
+    userId: TEST_USER.id,
+    opportunityId: "guardada",
+    savedAt: NOW.toISOString(),
+  }];
   const seed = await enrollTwoFactor(app, clock);
   clock.advanceSeconds(60); // una ventana nueva para no repetir el código
 
@@ -87,6 +95,11 @@ Deno.test("flujo completo: 403 mfa_required, verificación TOTP y exportación d
   assertEquals(body.account, { id: TEST_USER.id, email: TEST_USER.email });
   assertEquals(body.profile.birthDate, COMPLETE_PROFILE.birthDate);
   assertEquals(body.twoFactor.enrolled, true);
+  assertEquals(body.savedOpportunities, [{
+    opportunityId: "guardada",
+    title: "Oportunidad de prueba guardada",
+    savedAt: NOW.toISOString(),
+  }]);
   // La exportación nunca incluye el secreto TOTP.
   assert(!JSON.stringify(body).includes("secret"));
 });
@@ -204,6 +217,11 @@ Deno.test("el token elevado de una persona no sirve para otra", async () => {
 
 Deno.test("DELETE /api/me con verificación elimina la cuenta y sus datos", async () => {
   const { app, repository, clock } = setup();
+  repository.saved = [{
+    userId: TEST_USER.id,
+    opportunityId: "guardada",
+    savedAt: NOW.toISOString(),
+  }];
   const seed = await enrollTwoFactor(app, clock);
   clock.advanceSeconds(60);
 
@@ -226,6 +244,8 @@ Deno.test("DELETE /api/me con verificación elimina la cuenta y sus datos", asyn
   assertEquals(res.status, 204);
   assertEquals(repository.deletedUsers, [TEST_USER.id]);
   assertEquals(repository.profiles.has(TEST_USER.id), false);
+  // Las guardadas se borran solo al eliminar la cuenta.
+  assertEquals(repository.saved, []);
 });
 
 Deno.test("GET /api/me/views lista las oportunidades vistas, la más reciente primero, sin pedir step-up", async () => {
