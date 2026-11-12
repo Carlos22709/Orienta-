@@ -36,11 +36,11 @@ export function ErrorState({
     AccessibilityInfo.announceForAccessibility(`${title}. ${message}`);
   }, [title, message]);
 
+  // Solo el ícono y los textos forman un grupo para el lector. El botón queda
+  // fuera: en iOS, un elemento `accessible` oculta a sus hijos y VoiceOver no
+  // podría llegar a "Reintentar" (hallazgo H1).
   return (
     <View
-      accessible={true}
-      accessibilityRole="text"
-      accessibilityLabel={`${title}. ${message}`}
       style={[
         styles.container,
         {
@@ -49,9 +49,16 @@ export function ErrorState({
         },
       ]}
     >
-      <Ionicons name="alert-circle" size={40} color={colors.danger} />
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
+      <View
+        accessible={true}
+        accessibilityRole="text"
+        accessibilityLabel={`${title}. ${message}`}
+        style={styles.content}
+      >
+        <Ionicons name="alert-circle" size={40} color={colors.danger} />
+        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
+      </View>
 
       {onRetry && (
         <Pressable
@@ -91,6 +98,9 @@ const createStyles = () =>
     borderWidth: 1.5,
     marginVertical: spacing.md,
     padding: spacing.xl,
+  },
+  content: {
+    alignItems: 'center',
   },
   icon: {
     fontSize: 32,

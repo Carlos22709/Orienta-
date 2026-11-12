@@ -31,16 +31,20 @@ export function EmptyState({
     AccessibilityInfo.announceForAccessibility(`${title}. ${message}`);
   }, [title, message]);
 
+  // Solo el ícono y los textos forman un grupo para el lector. El botón queda
+  // fuera para que VoiceOver pueda enfocarlo (hallazgo H1).
   return (
-    <View
-      accessible={true}
-      accessibilityRole="text"
-      accessibilityLabel={`${title}. ${message}`}
-      style={[styles.container, { backgroundColor: colors.surface }]}
-    >
-      <Ionicons name={icon} size={40} color={colors.primary} />
-      <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-      <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
+    <View style={[styles.container, { backgroundColor: colors.surface }]}>
+      <View
+        accessible={true}
+        accessibilityRole="text"
+        accessibilityLabel={`${title}. ${message}`}
+        style={styles.content}
+      >
+        <Ionicons name={icon} size={40} color={colors.primary} />
+        <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
+        <Text style={[styles.message, { color: colors.textMuted }]}>{message}</Text>
+      </View>
 
       {actionLabel && onAction && (
         <Pressable
@@ -74,6 +78,9 @@ const createStyles = () =>
     borderColor: 'transparent',
     padding: spacing.xl,
     marginVertical: spacing.md,
+  },
+  content: {
+    alignItems: 'center',
   },
   icon: {
     fontSize: 40,
