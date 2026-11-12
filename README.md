@@ -27,7 +27,7 @@ apps/mobile/            app Expo
   src/ui/               kit visual: logo, botón, tarjetas, filas de menú, progreso, retroalimentación háptica
   src/components/       tarjeta de oportunidad, insignia de vigencia, opciones, código TOTP, estados
   src/profile/          lógica del cuestionario, borrador local y envío del perfil
-  src/saved/            persistencia de las guardadas en el teléfono
+  src/saved/            cambios optimistas a la lista de guardadas (viven en el servidor)
 supabase/
   config.toml           configuración local de Supabase
   functions/api/        API propia (Hono): app.ts, routes/, pruebas *.test.ts
@@ -118,7 +118,7 @@ Las rutas están en `apps/mobile/app/`:
    - las 4 o 5 recomendaciones de las reglas de la decisión 0005;
    - cada una con su insignia de vigencia (ícono y texto) y "Por qué para ti".
 4. **Explorar (`(tabs)/explorar.tsx`):** las oportunidades vigentes verificadas, con buscador y filtro por categoría.
-5. **Guardadas (`(tabs)/guardadas.tsx`):** las que la persona marca con el corazón, guardadas en el teléfono.
+5. **Guardadas (`(tabs)/guardadas.tsx`):** las que la persona marca con el corazón. Se guardan en el servidor (`/me/saved`), así que siguen ahí al cerrar sesión o cambiar de teléfono; solo se borran al eliminar la cuenta.
 6. **Perfil (`(tabs)/perfil.tsx`):**
    - resumen y edición de las respuestas, y oportunidades vistas recientemente (`perfil/vistas.tsx`);
    - verificación en dos pasos (`perfil/seguridad.tsx`);

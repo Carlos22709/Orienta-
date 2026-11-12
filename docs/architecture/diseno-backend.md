@@ -45,6 +45,8 @@ erDiagram
   AUTH_USERS ||--o{ STEP_UP_CHALLENGES : genera
   AUTH_USERS ||--o{ OPPORTUNITY_VIEWS : registra
   OPPORTUNITIES ||--o{ OPPORTUNITY_VIEWS : "es vista en"
+  AUTH_USERS ||--o{ SAVED_OPPORTUNITIES : guarda
+  OPPORTUNITIES ||--o{ SAVED_OPPORTUNITIES : "es guardada en"
   MUNICIPALITIES ||--o{ PROFILES : ubica
 
   PROFILES {
@@ -98,6 +100,11 @@ erDiagram
     uuid opportunity_id FK
     timestamptz first_viewed_at
   }
+  SAVED_OPPORTUNITIES {
+    uuid user_id FK
+    uuid opportunity_id FK
+    timestamptz saved_at
+  }
   MFA_FACTORS {
     uuid user_id PK
     bytea secret_ciphertext
@@ -115,7 +122,7 @@ erDiagram
   }
 ```
 
-El esquema está implementado en `supabase/migrations/20261110042232_esquema_inicial.sql` y probado con pgTAP en `supabase/tests/database/esquema.test.sql`. Además de las tablas, incluye dos funciones **atómicas**. Cada una comprueba y actualiza en una sola sentencia `UPDATE`, para que dos peticiones simultáneas no puedan tener éxito las dos:
+El esquema está implementado en `supabase/migrations/20261110042232_esquema_inicial.sql`, más `20261112150000_oportunidades_guardadas.sql` para las guardadas (♡), y probado con pgTAP en `supabase/tests/database/esquema.test.sql`. Además de las tablas, incluye dos funciones **atómicas**. Cada una comprueba y actualiza en una sola sentencia `UPDATE`, para que dos peticiones simultáneas no puedan tener éxito las dos:
 
 - `consume_totp_step(user_id, step)`: registra la ventana TOTP usada y devuelve `false` si es una repetición (anti-replay).
 - `consume_step_up_challenge(token_hash)`: consume un reto de step-up vigente una sola vez y devuelve su usuario y acción.
@@ -147,12 +154,15 @@ Todas las respuestas de error usan el formato `{ "error": "<codigo>", "message":
 | `GET` | `/opportunities` | `access_token` | Todas las oportunidades vigentes (no cerradas), primero las que cierran antes, con su vigencia. Alimenta la pestaña Explorar. |
 | `GET` | `/me/views` | `access_token` | Oportunidades que la persona ya abrió, la más reciente primero (máximo 30), para retomarlas (compromiso C3). |
 | `GET` | `/opportunities/:id` | `access_token` | Detalle: requisitos, entidad, fuente, vigencia, verificación y enlace oficial. Registra la vista. |
+| `GET` | `/me/saved` | `access_token` | Oportunidades guardadas con el ♡, la más reciente primero, con su vigencia (las que ya cerraron aparecen como cerradas). Siguen ahí al cerrar sesión o cambiar de teléfono. |
+| `PUT` | `/me/saved/:id` | `access_token` | Guarda una oportunidad. `204`; guardar de nuevo no cambia la fecha original. `404 not_found` si la oportunidad no existe. |
+| `DELETE` | `/me/saved/:id` | `access_token` | Quita una oportunidad de las guardadas. `204`, también si no estaba. |
 | `GET` | `/mfa/status` | `access_token` | `{ enrolled }`: indica si el 2FA está activo. |
 | `POST` | `/mfa/enroll` | `access_token` | `201` con `{ otpauthUri, secret }`. `secret` es la semilla en Base32 para escribirla a mano. `409 mfa_already_enrolled` si el 2FA ya está activo. |
 | `POST` | `/mfa/enroll/confirm` | `access_token` | `{ code }` → activa el factor. `422 invalid_code`; `409 mfa_not_pending` si no hay inscripción pendiente. |
 | `POST` | `/mfa/verify` | `access_token` | `{ stepUpToken, code }` → `{ elevatedToken, expiresAt }`. Errores: `422 invalid_code` (no 401, para no disparar la renovación de sesión de la app), `409 replay_detected`, `410 step_up_expired`. Un código incorrecto no gasta el reto. |
-| `GET` | `/me/data-export` | `access_token` + `X-Elevated-Token` | Exporta cuenta, perfil, oportunidades vistas y estado del 2FA, nunca el secreto (Ley 1581). Sin elevación: `403 mfa_required` con `{ stepUpToken, expiresAt }`, o `403 mfa_enrollment_required` si el 2FA no está activo. |
-| `DELETE` | `/me` | `access_token` + `X-Elevated-Token` | Elimina perfil, vistas, factor MFA y la cuenta. Sin elevación: `403 mfa_required`. |
+| `GET` | `/me/data-export` | `access_token` + `X-Elevated-Token` | Exporta cuenta, perfil, oportunidades vistas, guardadas y estado del 2FA, nunca el secreto (Ley 1581). Sin elevación: `403 mfa_required` con `{ stepUpToken, expiresAt }`, o `403 mfa_enrollment_required` si el 2FA no está activo. |
+| `DELETE` | `/me` | `access_token` + `X-Elevated-Token` | Elimina perfil, vistas, guardadas, factor MFA y la cuenta. Sin elevación: `403 mfa_required`. |
 
 Supabase Auth, que no es código propio, atiende `authorize`, el canje `grant_type=pkce`, la renovación `grant_type=refresh_token` y `logout`.
 

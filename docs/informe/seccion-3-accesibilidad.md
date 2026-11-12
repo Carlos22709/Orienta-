@@ -125,6 +125,7 @@ Los estados de carga, vacío y error (`src/components/states/`) se usan en Para 
 
 - **Borrador en el teléfono:** el cuestionario se guarda mientras se responde (`src/profile/draft.ts`). Si la persona cierra la app, al volver retoma donde iba y se le anuncia "Retomamos tus respuestas donde ibas".
 - **Perfil en el servidor:** se guarda con `PUT /me/profile` y se puede editar desde Perfil.
+- **Guardadas en el servidor:** las oportunidades marcadas con el ♡ se guardan con `PUT /me/saved/:id`. Siguen ahí al cerrar sesión o al entrar desde otro teléfono, y solo se borran al eliminar la cuenta.
 - **Código de 2FA vencido:** si vence el reto de verificación en dos pasos, se pide otro código sin perder la acción en curso (`src/security/criticalAction.ts`).
 
 ### Lectura en voz alta (F6)
