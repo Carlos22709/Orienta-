@@ -440,3 +440,149 @@ insert into public.opportunities (
   '2026-11-11T23:50:00-05:00',
   'active'
 );
+
+-- -----------------------------------------------------------------------------
+-- Becas y financiación de estudios (curación de Carlos, que asumió esta parte
+-- del reparto de la decisión 0007). Datos tomados de las páginas oficiales
+-- enlazadas, leídas el 2026-11-12. ICETEX y Colfuturo financian estudios con
+-- crédito; el resumen lo aclara.
+-- -----------------------------------------------------------------------------
+insert into public.opportunities (
+  title, summary_plain, category, entity_name, official_url, source_url,
+  deadline, min_age, max_age, min_education, min_experience, availability,
+  municipality_codes, modality, requirements,
+  check_official_source, check_entity_real, check_current,
+  check_requirements_complete, check_official_link,
+  verified_by, verified_at, status
+) values
+(
+  'Jóvenes a la E 6: apoyo para estudiar en instituciones públicas',
+  'Si eres bachiller de Bogotá y te admitieron para empezar en 2027-1 en la Universidad Nacional, la Distrital, la Pedagógica, la ETITC o el SENA, puedes recibir hasta un salario mínimo por periodo académico para sostenerte, además de apoyos como transporte.',
+  'scholarship',
+  'Agencia Distrital para la Educación Superior, la Ciencia y la Tecnología (Atenea)',
+  'https://sicore.agenciaatenea.gov.co/',
+  'https://agenciaatenea.gov.co/convocatorias/convocatoria-jovenes-la-e-6-educacion-superior-en-instituciones-publicas',
+  '2026-11-13',
+  null,
+  null,
+  'secondary',
+  null,
+  null,
+  array['11001'],
+  'in_person',
+  array[
+    'Ser bachiller de Bogotá',
+    'Haber sido admitido para empezar en 2027-1 en la Universidad Nacional, la Universidad Distrital, la Universidad Pedagógica Nacional, la ETITC o el SENA Regional Distrito Capital',
+    'Inscribirte en la plataforma SICORE de Atenea antes del 13 de noviembre de 2026 a las 11:59 p. m.'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-12T00:05:00-05:00',
+  'active'
+),
+(
+  'Jóvenes a la E 6: matrícula y apoyo para estudiar en instituciones privadas',
+  'Beca de Bogotá para empezar la educación superior en 2027-1: Atenea paga la matrícula directamente a la institución y te da un apoyo de hasta un salario mínimo por periodo académico.',
+  'scholarship',
+  'Agencia Distrital para la Educación Superior, la Ciencia y la Tecnología (Atenea)',
+  'https://sicore.agenciaatenea.gov.co/',
+  'https://agenciaatenea.gov.co/convocatorias/convocatoria-jovenes-la-e-6-educacion-superior-en-instituciones-privadas',
+  '2026-11-18',
+  null,
+  28,
+  'secondary',
+  null,
+  null,
+  array['11001'],
+  'in_person',
+  array[
+    'Ser bachiller de Bogotá o estar en grado once (calendario A)',
+    'Tener hasta 28 años',
+    'Inscribirte en la plataforma SICORE de Atenea entre el 12 y el 18 de noviembre de 2026'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-12T00:05:00-05:00',
+  'active'
+),
+(
+  -- El Ministerio publica dos páginas con criterios distintos de edad: la
+  -- guía actualizada en 2025 dice 14 a 28 años y un comunicado de 2024 dice
+  -- que no hay límite. Se usa la guía más reciente.
+  'Matrícula Cero: estudia gratis tu pregrado en una institución pública',
+  'Política de Gratuidad del Gobierno nacional: si estudias pregrado en una institución pública con convenio, el Gobierno paga tu matrícula ordinaria. No hay que pedirla aparte: la institución te registra al matricularte.',
+  'scholarship',
+  'Ministerio de Educación Nacional',
+  'https://www.mineducacion.gov.co/portal/Educacion-superior/Politica-de-Gratuidad-Puedo-Estudiar/409830:Politica-de-Gratuidad-en-la-Educacion-Superior',
+  'https://www.mineducacion.gov.co/portal/salaprensa/Comunicados/420611:Como-acceder-a-la-Politica-de-Gratuidad-Puedo-Estudiar-Conoce-el-paso-a-paso',
+  null,
+  null,
+  28,
+  'secondary',
+  null,
+  null,
+  null,
+  'hybrid',
+  array[
+    'Tener nacionalidad colombiana',
+    'Estar en el Sisbén IV en los grupos A, B o C (o en uno de los grupos especiales que define el Ministerio)',
+    'Matricularte en un pregrado con registro calificado en una institución pública con convenio',
+    'No tener título profesional universitario ni de posgrado'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-12T00:05:00-05:00',
+  'active'
+),
+(
+  'Crédito educativo ICETEX para estudiar en 2027-1',
+  'El ICETEX abrió su convocatoria de créditos para pregrado, posgrado y formación para el trabajo en 2027-1. Es un préstamo, no una beca: financia hasta el 100 % de la matrícula y una parte se paga durante los estudios.',
+  'scholarship',
+  'ICETEX',
+  'https://web.icetex.gov.co/creditos/planes-de-financiacion',
+  'https://bogota.gov.co/mi-ciudad/educacion/2026-10/nueva-convocatoria-para-creditos-educativos-del-icetex-para-2027',
+  null,
+  null,
+  null,
+  'secondary',
+  null,
+  null,
+  null,
+  'virtual',
+  array[
+    'Diligenciar la solicitud en la página del ICETEX (crédito educativo)',
+    'Descargar el formulario, firmarlo, poner tu huella y adjuntarlo en el enlace que llega por correo',
+    'El trámite no tiene costo y se hace directamente, sin intermediarios'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-12T00:05:00-05:00',
+  'active'
+),
+(
+  'Crédito-Beca COLFUTURO 2027 para posgrado en el exterior',
+  'Financiación de COLFUTURO para hacer una maestría o un doctorado fuera del país. La convocatoria 2027 recibe postulaciones del 4 de enero al 4 de marzo de 2027.',
+  'scholarship',
+  'COLFUTURO',
+  'https://www.colfuturo.org/programas/credito-beca/convocatoria',
+  'https://www.colfuturo.org/programas/credito-beca/convocatoria',
+  '2027-03-04',
+  null,
+  null,
+  'university',
+  null,
+  null,
+  null,
+  'virtual',
+  array[
+    'Ser colombiano',
+    'Tener un título de pregrado',
+    'Presentar el programa de posgrado que te interesa y un escrito',
+    'Postularte entre el 4 de enero y el 4 de marzo de 2027',
+    'Al legalizar, certificar el dominio de un segundo idioma'
+  ],
+  true, true, true, true, true,
+  'Carlos Augusto Sánchez Lombana',
+  '2026-11-12T00:05:00-05:00',
+  'active'
+);
