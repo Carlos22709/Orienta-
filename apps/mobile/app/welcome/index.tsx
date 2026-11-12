@@ -9,8 +9,37 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { signInWithGoogleAction, signOut } from '../../src/auth/actions';
+import type { SignInOutcome } from '../../src/auth/googleSignIn';
+import { useAppDispatch, useAppSelector } from '../../src/store';
+import {
+  selectAuthStatus,
+  selectSessionUser,
+  selectSignedOutReason,
+  type SignedOutReason,
+} from '../../src/store/authSlice';
 import { minTouchTarget, spacing, typography } from '../../src/theme/tokens';
 import { useTheme } from '../../src/theme/useTheme';
+
+/** Mensajes en lenguaje claro para cada resultado del inicio de sesión. */
+const SIGN_IN_MESSAGES: Record<Exclude<SignInOutcome, 'signed_in'>, string> = {
+  cancelled: 'Cerraste el inicio de sesión. Puedes intentarlo de nuevo cuando quieras.',
+  state_mismatch:
+    'No pudimos confirmar que la respuesta era de tu inicio de sesión. Intenta de nuevo.',
+  provider_error: 'Google no completó el inicio de sesión. Intenta de nuevo.',
+  invalid: 'El inicio de sesión venció antes de terminar. Intenta de nuevo.',
+  unavailable: 'No pudimos conectar con el servidor. Revisa tu conexión e intenta de nuevo.',
+  not_configured:
+    'Falta configurar el inicio de sesión en esta copia de la app (variables de Supabase).',
+};
+
+/** Por qué no hay sesión al llegar a esta pantalla. */
+const SIGNED_OUT_MESSAGES: Record<SignedOutReason, string> = {
+  expired: 'Tu sesión terminó. Vuelve a iniciar sesión para continuar.',
+  unavailable:
+    'No pudimos recuperar tu sesión porque no hubo conexión. Intenta iniciar sesión de nuevo.',
+  signedOut: 'Cerraste sesión.',
+};
 
 /**
  * Pantalla de bienvenida, explicación del alcance y consentimiento.
@@ -31,12 +60,59 @@ export default function WelcomeScreen() {
     );
   };
 
-  const handleContinue = () => {
-    if (!consented) return;
+  const dispatch = useAppDispatch();
+  const authStatus = useAppSelector(selectAuthStatus);
+  const user = useAppSelector(selectSessionUser);
+  const signedOutReason = useAppSelector(selectSignedOutReason);
+  const isSignedIn = authStatus === 'signedIn';
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [signInMessage, setSignInMessage] = useState<string | null>(null);
+
+  // Mensaje visible: el del último intento o, si no hay, por qué no hay sesión.
+  const notice =
+    signInMessage ??
+    (!isSignedIn && signedOutReason ? SIGNED_OUT_MESSAGES[signedOutReason] : null);
+
+  const goToProfile = () => {
     // El perfil envía la aceptación al servidor junto con la versión vigente
     // del texto de consentimiento (GET /api/catalog).
     router.push({ pathname: '/profile', params: { consent: 'accepted' } });
   };
+
+  const handleContinue = async () => {
+    if (!consented || isSigningIn) return;
+    if (isSignedIn) {
+      goToProfile();
+      return;
+    }
+
+    // Sin sesión: primero Google (PKCE), después el perfil.
+    setIsSigningIn(true);
+    setSignInMessage(null);
+    const outcome = await dispatch(signInWithGoogleAction());
+    setIsSigningIn(false);
+
+    if (outcome === 'signed_in') {
+      AccessibilityInfo.announceForAccessibility('Sesión iniciada');
+      goToProfile();
+      return;
+    }
+    setSignInMessage(SIGN_IN_MESSAGES[outcome]);
+    AccessibilityInfo.announceForAccessibility(SIGN_IN_MESSAGES[outcome]);
+  };
+
+  const handleSignOut = async () => {
+    setSignInMessage(null);
+    await dispatch(signOut());
+    AccessibilityInfo.announceForAccessibility(SIGNED_OUT_MESSAGES.signedOut);
+  };
+
+  const continueLabel = isSignedIn
+    ? 'Continuar al perfil →'
+    : isSigningIn
+      ? 'Abriendo Google…'
+      : 'Continuar con Google';
+  const continueDisabled = !consented || isSigningIn || authStatus === 'restoring';
 
   return (
     <SafeAreaView
@@ -119,26 +195,72 @@ export default function WelcomeScreen() {
           </Text>
         </Pressable>
 
-        {/* Botón de acción principal */}
+        {/* Estado de la sesión o resultado del último intento (anunciado). */}
+        {notice && (
+          <View
+            accessibilityLiveRegion="polite"
+            style={[
+              styles.card,
+              { backgroundColor: colors.surface, borderColor: colors.border },
+            ]}
+          >
+            <Text style={[typography.body, { color: colors.text }]}>{notice}</Text>
+          </View>
+        )}
+
+        {/* Botón de acción principal: Google si no hay sesión, perfil si la hay. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Continuar a configurar el perfil"
-          accessibilityHint="Abre la pantalla de captura del perfil"
-          accessibilityState={{ disabled: !consented }}
-          disabled={!consented}
+          accessibilityLabel={
+            isSignedIn ? 'Continuar a configurar el perfil' : continueLabel
+          }
+          accessibilityHint={
+            isSignedIn
+              ? 'Abre la pantalla de captura del perfil'
+              : 'Abre el navegador del sistema para iniciar sesión con tu cuenta de Google y luego el perfil'
+          }
+          accessibilityState={{ disabled: continueDisabled, busy: isSigningIn }}
+          disabled={continueDisabled}
           onPress={handleContinue}
           style={({ pressed }) => [
             styles.continueButton,
             {
               backgroundColor: colors.primary,
-              opacity: !consented ? 0.5 : pressed ? 0.85 : 1,
+              opacity: continueDisabled ? 0.5 : pressed ? 0.85 : 1,
             },
           ]}
         >
           <Text style={[typography.body, styles.continueText, { color: colors.onPrimary }]}>
-            Continuar al perfil →
+            {continueLabel}
           </Text>
         </Pressable>
+
+        {!consented && !isSignedIn && (
+          <Text style={[typography.secondary, { color: colors.textMuted }]}>
+            Marca la autorización para continuar.
+          </Text>
+        )}
+
+        {isSignedIn && (
+          <View style={styles.sessionRow}>
+            <Text style={[typography.secondary, { color: colors.textMuted }]}>
+              Sesión iniciada{user?.email ? ` como ${user.email}` : ''}.
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityHint="Cierra tu sesión en este dispositivo"
+              onPress={handleSignOut}
+              style={({ pressed }) => [
+                styles.secondaryButton,
+                { borderColor: colors.border, opacity: pressed ? 0.85 : 1 },
+              ]}
+            >
+              <Text style={[typography.body, styles.continueText, { color: colors.primary }]}>
+                Cerrar sesión
+              </Text>
+            </Pressable>
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -205,5 +327,17 @@ const styles = StyleSheet.create({
   },
   continueText: {
     fontWeight: '700',
+  },
+  sessionRow: {
+    gap: spacing.sm,
+  },
+  secondaryButton: {
+    borderRadius: 8,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: minTouchTarget,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
   },
 });
