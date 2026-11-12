@@ -184,7 +184,7 @@ Por la importancia de la defensa individual, el código debe favorecer comprensi
 Estado al 2026-11-11:
 
 - Repositorio en GitHub (`Carlos22709/Orienta-`).
-- Decisiones técnicas y de alcance en `docs/decisions/` (0001–0009), aprobadas por Carlos y pendientes de ratificación por Laura y Juan.
+- Decisiones técnicas y de alcance en `docs/decisions/` (0001–0009), ratificadas por Carlos, Laura y Juan el 2026-11-12.
 - Backend (`supabase/`):
   - migración inicial con RLS sin políticas, 12 municipios en el seed y pruebas pgTAP;
   - API (Hono) con salud, catálogo, perfil, recomendaciones, detalle de oportunidad, 2FA (TOTP propio) y step-up para exportar y eliminar datos;

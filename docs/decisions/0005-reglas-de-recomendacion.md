@@ -1,6 +1,6 @@
 # 0005 — Reglas de vigencia, elegibilidad, ranking y selección
 
-- **Estado:** propuesta del agente, aprobada por delegación de Carlos; pendiente de ratificación por Laura y Juan.
+- **Estado:** propuesta del agente, aprobada por delegación de Carlos; ratificada por Laura y Juan el 2026-11-12 (confirmación en el grupo del equipo).
 - **Fecha:** 2026-11-09.
 
 ## Contexto

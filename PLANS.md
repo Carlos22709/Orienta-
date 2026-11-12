@@ -343,7 +343,7 @@ Cada punto de control debe incluir una demostración del producto funcionando y 
 
 ## 14. Decisiones registradas y pendientes
 
-Las decisiones de stack, autenticación, estado, plataformas, alcance geográfico, perfil y fuente de oportunidades están registradas en `docs/decisions/` y pendientes de ratificación por todo el equipo. La lista de información pendiente se mantiene en `docs/decisions/README.md`. Entre otros puntos, incluye:
+Las decisiones de stack, autenticación, estado, plataformas, alcance geográfico, perfil y fuente de oportunidades están registradas en `docs/decisions/` y fueron ratificadas por todo el equipo el 2026-11-12. La lista de información pendiente se mantiene en `docs/decisions/README.md`. Entre otros puntos, incluye:
 
 - responsable del módulo de autenticación y 2FA, que no está asignado en la sección 3;
 - reglas exactas de elegibilidad y ranking;

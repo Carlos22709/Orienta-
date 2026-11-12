@@ -1,6 +1,6 @@
 # 0004 — Alcance del MVP: plataformas, geografía, perfil y fuente de oportunidades
 
-- **Estado:** aprobada por Carlos, pendiente de ratificación por Laura y Juan.
+- **Estado:** aprobada por Carlos, ratificada por Laura y Juan el 2026-11-12 (confirmación en el grupo del equipo).
 - **Fecha:** 2026-11-09.
 
 ## Plataformas y dispositivos

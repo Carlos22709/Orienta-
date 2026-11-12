@@ -1,6 +1,6 @@
 # 0006 — Identidad visual y tokens accesibles
 
-- **Estado:** propuesta del agente, aprobada por delegación de Carlos; pendiente de ratificación por el equipo. Laura es la responsable del sistema visual y puede ajustarla, siempre que vuelva a verificar los contrastes.
+- **Estado:** propuesta del agente, aprobada por delegación de Carlos; ratificada por Laura y Juan el 2026-11-12 (confirmación en el grupo del equipo). Laura es la responsable del sistema visual y puede ajustarla, siempre que vuelva a verificar los contrastes.
 - **Fecha:** 2026-11-09.
 
 ## Contexto

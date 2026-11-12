@@ -1,6 +1,6 @@
 # 0009 — Integración a `main` sin revisión obligatoria
 
-- **Estado:** aprobada por Carlos; pendiente de ratificación por Laura y Juan.
+- **Estado:** aprobada por Carlos; ratificada por Laura y Juan el 2026-11-12 (confirmación en el grupo del equipo).
 - **Fecha:** 2026-11-09.
 - **Reemplaza:** las reglas de *pull requests* con aprobación obligatoria y de protección de `main` de la decisión [0008](0008-flujo-de-trabajo-git.md). El resto de 0008 sigue vigente: formato de commits con gitmoji, sin coautoría, sin *squash* y manejo de secretos.
 
