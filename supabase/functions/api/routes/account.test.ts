@@ -227,3 +227,29 @@ Deno.test("DELETE /api/me con verificación elimina la cuenta y sus datos", asyn
   assertEquals(repository.deletedUsers, [TEST_USER.id]);
   assertEquals(repository.profiles.has(TEST_USER.id), false);
 });
+
+Deno.test("GET /api/me/views lista las oportunidades vistas, la más reciente primero, sin pedir step-up", async () => {
+  const { app, repository } = setup();
+  repository.views = [
+    { userId: TEST_USER.id, opportunityId: "primera" },
+    { userId: TEST_USER.id, opportunityId: "segunda" },
+    { userId: "otra-persona", opportunityId: "ajena" },
+  ];
+
+  const res = await app.request("/api/me/views", { headers: AUTH_HEADER });
+  const body = await res.json();
+
+  assertEquals(res.status, 200);
+  assertEquals(
+    body.items.map((v: { opportunityId: string }) => v.opportunityId),
+    ["segunda", "primera"],
+  );
+});
+
+Deno.test("GET /api/me/views sin sesión responde 401", async () => {
+  const { app } = setup();
+
+  const res = await app.request("/api/me/views");
+
+  assertEquals(res.status, 401);
+});

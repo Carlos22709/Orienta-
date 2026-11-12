@@ -39,6 +39,14 @@ export function accountRoutes(deps: AppDependencies) {
     },
   );
 
+  // GET /api/me/views: oportunidades que la persona ya abrió, la más reciente
+  // primero, para retomarlas (compromiso C3). No es una acción crítica: solo
+  // pide sesión.
+  app.get("/views", requireUser(deps.auth), async (c) => {
+    const views = await deps.repository.listOpportunityViews(c.get("user").id);
+    return c.json({ items: [...views].reverse().slice(0, 30) });
+  });
+
   // DELETE /api/me: elimina la cuenta; las tablas propias se borran en cascada.
   app.delete(
     "/",
