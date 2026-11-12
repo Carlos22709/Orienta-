@@ -58,7 +58,10 @@ export default function ProfileTab() {
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
         >
-          <Text style={[typography.screenTitle, { color: '#FFFFFF' }]}>{initials(user?.email)}</Text>
+          {/* Caja de tamaño fijo: se limita el escalado para que las iniciales no se recorten (F1). */}
+          <Text maxFontSizeMultiplier={1.3} style={[typography.screenTitle, { color: '#FFFFFF' }]}>
+            {initials(user?.email)}
+          </Text>
         </View>
         <Text accessibilityRole="header" style={[typography.cardTitle, { color: colors.text }]}>
           {user?.email ?? 'Tu perfil'}
@@ -79,6 +82,12 @@ export default function ProfileTab() {
           label="Editar mis respuestas"
           hint="Abre el cuestionario con tus respuestas actuales"
           onPress={() => router.push({ pathname: '/cuestionario', params: { modo: 'editar' } })}
+        />
+        <MenuRow
+          icon="time-outline"
+          label="Vistas recientemente"
+          hint="Las oportunidades que ya abriste"
+          onPress={() => router.push('/perfil/vistas')}
           last
         />
       </Card>

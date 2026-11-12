@@ -52,11 +52,14 @@ export function StepUpModal({
       presentationStyle="pageSheet"
       onRequestClose={onCancel}
     >
-      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
+      {/* accessibilityViewIsModal: VoiceOver no sale de la ventana hasta cerrarla (M2). */}
+      <SafeAreaView
+        accessibilityViewIsModal
+        style={[styles.safeArea, { backgroundColor: colors.background }]}
+      >
         <ScrollView
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
-          accessibilityViewIsModal
         >
           <Text
             accessibilityRole="header"

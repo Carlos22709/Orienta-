@@ -114,6 +114,14 @@ export const profileResponseSchema = z.object({
 });
 export type ProfileResponse = z.infer<typeof profileResponseSchema>;
 
+/** Contrato de GET /api/me/views (oportunidades ya abiertas, la más reciente primero). */
+export const viewsResponseSchema = z.object({
+  items: z.array(
+    z.object({ opportunityId: z.string(), title: z.string(), firstViewedAt: z.string() }),
+  ),
+});
+export type ViewedOpportunity = z.infer<typeof viewsResponseSchema>['items'][number];
+
 /** Contrato de GET /api/mfa/status. */
 export const mfaStatusSchema = z.object({ enrolled: z.boolean() });
 export type MfaStatus = z.infer<typeof mfaStatusSchema>;
@@ -204,6 +212,11 @@ export const api = createApi({
       invalidatesTags: ['Profile', 'Recommendations'],
     }),
 
+    getMyViews: build.query<ViewedOpportunity[], void>({
+      query: () => 'me/views',
+      transformResponse: (response: unknown) => viewsResponseSchema.parse(response).items,
+    }),
+
     // Verificación en dos pasos (decisión 0002, sección 4).
     getMfaStatus: build.query<MfaStatus, void>({
       query: () => 'mfa/status',
@@ -243,6 +256,7 @@ export const {
   useGetCatalogQuery,
   useGetProfileQuery,
   useUpdateProfileMutation,
+  useGetMyViewsQuery,
   useGetMfaStatusQuery,
   useStartMfaEnrollmentMutation,
   useConfirmMfaEnrollmentMutation,

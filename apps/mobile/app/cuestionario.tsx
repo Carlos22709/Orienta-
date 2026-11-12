@@ -16,6 +16,7 @@ import { signInWithGoogleAction } from '../src/auth/actions';
 import { SIGN_IN_MESSAGES } from '../src/auth/messages';
 import { OptionGroup } from '../src/components/OptionGroup';
 import { ErrorState } from '../src/components/states/ErrorState';
+import { clearDraft, hasAnswers, loadDraft, saveDraft, type QuestionnaireDraft } from '../src/profile/draft';
 import {
   EMPTY_FORM,
   formFromProfile,
@@ -47,6 +48,7 @@ import { useTheme } from '../src/theme/useTheme';
 import { Button } from '../src/ui/Button';
 import { Notice, ProgressBar } from '../src/ui/layout';
 import { Splash } from '../src/ui/Splash';
+import { notifyError, notifySelection, notifySuccess } from '../src/ui/feedback';
 
 /** Pregunta y ayuda de cada paso, en lenguaje claro. */
 const QUESTIONS: Record<Step, { title: string; help: string }> = {
@@ -123,20 +125,49 @@ export default function QuestionnaireScreen() {
     [editing, consentIsCurrent],
   );
 
-  // Retoma las respuestas guardadas una sola vez y solo si la persona ya
-  // tenía sesión al abrir el cuestionario (no después de entrar con Google,
-  // para no borrar lo que acaba de responder).
+  // Retoma el progreso una sola vez (compromiso C3): primero lo guardado en el
+  // servidor; si no hay, el borrador del teléfono. Solo se consulta el servidor
+  // si la persona ya tenía sesión al abrir el cuestionario, para no borrar lo
+  // que acaba de responder antes de entrar con Google.
   const startedSignedIn = useRef(isSignedIn);
-  const loaded = useRef(false);
+  const restored = useRef(false);
+  const draft = useRef<QuestionnaireDraft | null>(null);
+  const [draftChecked, setDraftChecked] = useState(editing);
   useEffect(() => {
-    if (loaded.current || !startedSignedIn.current || !saved.data) return;
-    loaded.current = true;
-    const restored = formFromProfile(saved.data.profile);
-    setForm(restored);
-    const accepted = saved.data.profile?.consentVersion === consentVersion;
-    setConsentAccepted(accepted);
-    if (!editing) setStepIndex(firstIncompleteStep(restored, accepted));
-  }, [saved.data, consentVersion, editing]);
+    if (editing) return;
+    void loadDraft().then((value) => {
+      draft.current = value;
+      setDraftChecked(true);
+    });
+  }, [editing]);
+
+  useEffect(() => {
+    if (restored.current || !draftChecked) return;
+    const waitingServer = startedSignedIn.current && !saved.data && !saved.isError;
+    if (waitingServer) return;
+    restored.current = true;
+
+    const server = saved.data ? formFromProfile(saved.data.profile) : null;
+    if (server && hasAnswers(server)) {
+      const accepted = saved.data?.profile?.consentVersion === consentVersion;
+      setForm(server);
+      setConsentAccepted(accepted);
+      if (!editing) setStepIndex(firstIncompleteStep(server, accepted));
+      return;
+    }
+    if (draft.current && hasAnswers(draft.current.form)) {
+      setForm(draft.current.form);
+      setConsentAccepted(draft.current.consentAccepted);
+      setStepIndex(Math.min(draft.current.stepIndex, STEPS.length - 1));
+      AccessibilityInfo.announceForAccessibility('Retomamos tus respuestas donde ibas');
+    }
+  }, [draftChecked, saved.data, saved.isError, consentVersion, editing]);
+
+  // Guarda el progreso en el teléfono en cada cambio (solo en el primer uso).
+  useEffect(() => {
+    if (editing || !restored.current) return;
+    saveDraft({ form, stepIndex, consentAccepted });
+  }, [form, stepIndex, consentAccepted, editing]);
 
   const step = steps[Math.min(stepIndex, steps.length - 1)];
   const isLast = stepIndex >= steps.length - 1;
@@ -163,7 +194,8 @@ export default function QuestionnaireScreen() {
     const needsConsent = consentAccepted && !consentIsCurrent;
     try {
       await updateProfile(toProfileUpdate(form, needsConsent ? catalog.data.consentVersion : null)).unwrap();
-      AccessibilityInfo.announceForAccessibility('Respuestas guardadas');
+      clearDraft();
+      notifySuccess('Respuestas guardadas');
       if (editing && router.canGoBack()) router.back();
       else router.replace('/para-ti');
     } catch (error) {
@@ -174,6 +206,7 @@ export default function QuestionnaireScreen() {
         if (index >= 0) {
           setStepIndex(index);
           setFieldError(result.fields[field!]);
+          notifyError(result.fields[field!]);
           return;
         }
       }
@@ -182,7 +215,7 @@ export default function QuestionnaireScreen() {
         if (index >= 0) setStepIndex(index);
       }
       setMessage(result.message);
-      AccessibilityInfo.announceForAccessibility(result.message);
+      notifyError(result.message);
     }
   };
 
@@ -194,7 +227,7 @@ export default function QuestionnaireScreen() {
       if (outcome !== 'signed_in') {
         setBusy(false);
         setMessage(SIGN_IN_MESSAGES[outcome]);
-        AccessibilityInfo.announceForAccessibility(SIGN_IN_MESSAGES[outcome]);
+        notifyError(SIGN_IN_MESSAGES[outcome]);
         return;
       }
     }
@@ -335,6 +368,7 @@ export default function QuestionnaireScreen() {
             onToggle={() => {
               const next = !consentAccepted;
               setConsentAccepted(next);
+              notifySelection();
               AccessibilityInfo.announceForAccessibility(
                 next ? 'Autorización marcada' : 'Autorización desmarcada',
               );

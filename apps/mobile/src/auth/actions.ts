@@ -1,5 +1,6 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
+import { clearDraft } from '../profile/draft';
 import { api } from '../store/api';
 import type { AppDispatch, RootState } from '../store';
 import { type BrowserDeps, signInWithGoogle } from './googleSignIn';
@@ -41,6 +42,7 @@ export function signInWithGoogleAction() {
 export function finishAccountDeletion() {
   return async (dispatch: AppDispatch) => {
     await forgetSession(sessionDeps, dispatch, 'deleted');
+    clearDraft();
     dispatch(api.util.resetApiState());
   };
 }
@@ -49,6 +51,7 @@ export function finishAccountDeletion() {
 export function signOut() {
   return async (dispatch: AppDispatch, getState: () => RootState) => {
     await endSession(sessionDeps, dispatch, getState().auth.accessToken);
+    clearDraft();
     dispatch(api.util.resetApiState());
   };
 }
